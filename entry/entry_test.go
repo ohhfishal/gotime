@@ -26,7 +26,7 @@ func TestEncodeDecode(t *testing.T) {
 			Entry: Entry{
 				Time:        time.Now(),
 				Category:    "Project A",
-				Description: "Important Task",
+				Note: "Important Task",
 			},
 		},
 	}
@@ -62,16 +62,16 @@ func TestReadAll(t *testing.T) {
 				{
 					Time:        time.Now(),
 					Category:    "Project A",
-					Description: "Important Task",
+					Note: "Important Task",
 				},
 				{
 					Category:    "Project B",
-					Description: "Important Task B",
+					Note: "Important Task B",
 				},
 				{
 					Time:        time.Now(),
 					Category:    "Project C",
-					Description: "Important Task C",
+					Note: "Important Task C",
 				},
 			},
 		},
@@ -105,6 +105,6 @@ func TestReadAll(t *testing.T) {
 func RequireEntryEqual(tb testing.TB, expected, actual Entry) {
 	require := require.New(tb)
 	require.Equal(expected.Category, actual.Category)
-	require.Equal(expected.Description, actual.Description)
+	require.Equal(expected.Note, actual.Note)
 	require.Equal(expected.Time.Format(TimeFormat), actual.Time.Format(TimeFormat))
 }

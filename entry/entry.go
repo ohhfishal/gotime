@@ -12,7 +12,7 @@ import (
 type Entry struct {
 	Time        time.Time
 	Category    string
-	Description string
+	Note string
 }
 
 func ReadAll(reader io.Reader, config ...Config) ([]Entry, error) {

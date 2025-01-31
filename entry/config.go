@@ -53,7 +53,7 @@ func (ed defaultEncodeDecoder) Encode(entry Entry) (string, error) {
 	return fmt.Sprintf(`%v,%s: %s`,
 		entry.Time.Format(ed.TimeLayout),
 		entry.Category,
-		entry.Description,
+		entry.Note,
 	), nil
 }
 
@@ -82,6 +82,6 @@ func (ed defaultEncodeDecoder) Decode(stream string) (*Entry, error) {
 		return nil, fmt.Errorf("unexpected eof")
 	}
 	entry.Category = stream[1:cutIndex]
-	entry.Description = strings.TrimSpace(stream[cutIndex+1:])
+	entry.Note = strings.TrimSpace(stream[cutIndex+1:])
 	return &entry, nil
 }
