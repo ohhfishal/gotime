@@ -19,7 +19,6 @@ func ReadAll(reader io.Reader, config ...Config) ([]Entry, error) {
 	entries := []Entry{}
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
-		fmt.Println("scan", scanner.Text())
 		entry, err := Read(strings.NewReader(scanner.Text()), config...)
 		if err != nil {
 			return []Entry{}, fmt.Errorf("reading line: %w", err)
