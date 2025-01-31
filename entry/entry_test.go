@@ -24,9 +24,9 @@ func TestEncodeDecode(t *testing.T) {
 		{
 			Name: "normal",
 			Entry: Entry{
-				Time:        time.Now(),
-				Category:    "Project A",
-				Note: "Important Task",
+				Time:     time.Now(),
+				Category: "Project A",
+				Note:     "Important Task",
 			},
 		},
 	}
@@ -60,18 +60,18 @@ func TestReadAll(t *testing.T) {
 			Name: "happy case",
 			Entries: []Entry{
 				{
-					Time:        time.Now(),
-					Category:    "Project A",
-					Note: "Important Task",
+					Time:     time.Now(),
+					Category: "Project A",
+					Note:     "Important Task",
 				},
 				{
-					Category:    "Project B",
-					Note: "Important Task B",
+					Category: "Project B",
+					Note:     "Important Task B",
 				},
 				{
-					Time:        time.Now(),
-					Category:    "Project C",
-					Note: "Important Task C",
+					Time:     time.Now(),
+					Category: "Project C",
+					Note:     "Important Task C",
 				},
 			},
 		},

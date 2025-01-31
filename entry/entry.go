@@ -2,7 +2,6 @@ package entry
 
 import (
 	"bufio"
-	// "errors"
 	"fmt"
 	"io"
 	"strings"
@@ -10,9 +9,9 @@ import (
 )
 
 type Entry struct {
-	Time        time.Time
-	Category    string
-	Note string
+	Time     time.Time
+	Category string
+	Note     string
 }
 
 func ReadAll(reader io.Reader, config ...Config) ([]Entry, error) {
