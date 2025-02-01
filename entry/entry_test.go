@@ -24,9 +24,9 @@ func TestEncodeDecode(t *testing.T) {
 		{
 			Name: "normal",
 			Entry: Entry{
-				Time:        time.Now(),
-				Category:    "Project A",
-				Note: "Important Task",
+				Time:     time.Now(),
+				Category: "Project A",
+				Note:     "Important Task",
 			},
 		},
 	}
@@ -60,18 +60,18 @@ func TestReadAll(t *testing.T) {
 			Name: "happy case",
 			Entries: []Entry{
 				{
-					Time:        time.Now(),
-					Category:    "Project A",
-					Note: "Important Task",
+					Time:     time.Now(),
+					Category: "Project A",
+					Note:     "Important Task",
 				},
 				{
-					Category:    "Project B",
-					Note: "Important Task B",
+					Category: "Project B",
+					Note:     "Important Task B",
 				},
 				{
-					Time:        time.Now(),
-					Category:    "Project C",
-					Note: "Important Task C",
+					Time:     time.Now(),
+					Category: "Project C",
+					Note:     "Important Task C",
 				},
 			},
 		},
@@ -100,6 +100,34 @@ func TestReadAll(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestFilter(t *testing.T) {
+	entries := []Entry{}
+	for i := 0; i < 10; i++ {
+		entries = append(entries, Entry{Time: time.Now()})
+	}
+	filtered := Filter(entries, entries[1].Time, entries[8].Time)
+	RequireEntrySliceEqual(t, entries[1:9], filtered)
+}
+
+func TestCompare(t *testing.T) {
+	a := Entry{Time: time.Now()}
+	require := require.New(t)
+	b := Entry{Time: time.Now()}
+	require.Equal(Compare(a, b), -1, " a  b")
+	require.Equal(Compare(a, a), 0, " a  a")
+	require.Equal(Compare(b, a), 1, " b  a")
+}
+
+func RequireEntrySliceEqual(tb testing.TB, expected, actual []Entry) {
+	require := require.New(tb)
+	require.Equal(len(expected), len(actual))
+	for i, entry := range actual {
+		require.LessOrEqual(i, len(expected))
+		RequireEntryEqual(tb, expected[i], entry)
+	}
+
 }
 
 func RequireEntryEqual(tb testing.TB, expected, actual Entry) {
