@@ -14,6 +14,15 @@ type Entry struct {
 	Note     string
 }
 
+func (entry Entry) String() string {
+	// TODO: REMOVE this is config dependant
+	msg := entry.Time.Format(time.Kitchen) + " " + entry.Category
+	if entry.Note == "" {
+		return msg
+	}
+	return msg + fmt.Sprintf(` "%s"`, entry.Note)
+}
+
 func ReadAll(reader io.Reader, config ...Config) ([]Entry, error) {
 	entries := []Entry{}
 	scanner := bufio.NewScanner(reader)
@@ -55,4 +64,20 @@ func Read(reader io.Reader, config ...Config) (*Entry, error) {
 		return nil, fmt.Errorf("parsing: %w", err)
 	}
 	return entry, nil
+}
+
+func Filter(entries []Entry, start, end time.Time) []Entry {
+	filtered := []Entry{}
+	for _, entry := range entries {
+		time := entry.Time
+		if (time.Equal(start) || time.After(start)) &&
+			(time.Equal(end) || time.Before(end)) {
+			filtered = append(filtered, entry)
+		}
+	}
+	return filtered
+}
+
+func Compare(a, b Entry) int {
+	return a.Time.Compare(b.Time)
 }

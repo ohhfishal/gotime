@@ -26,7 +26,7 @@ func (c Config) GetenvDefault(key, value string) string {
 	return value
 }
 
-type Command func(Config, []string) error
+type Command func(Config, ...string) error
 
 var commands = map[string]Command{
 	"report": Report,
@@ -38,13 +38,14 @@ func Run(cfg Config, args []string) error {
 	cfg = SanitizeConfig(cfg)
 
 	if len(args) == 0 {
-		return Help(cfg, args)
+		return Help(cfg, args...)
 	}
 
 	if command, ok := commands[args[0]]; ok {
-		return command(cfg, args[1:])
+		return command(cfg, args[1:]...)
 	}
-	return Log(cfg, args)
+	// TODO: Parse some flags to see if they are trying to do something else?
+	return Log(cfg, args...)
 }
 
 func SanitizeConfig(cfg Config) Config {

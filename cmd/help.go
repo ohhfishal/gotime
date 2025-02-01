@@ -1,5 +1,10 @@
 package cmd
 
-func Help(Config, []string) error {
+import (
+	"fmt"
+)
+
+func Help(cfg Config, args ...string) error {
+	fmt.Fprintln(cfg.Stdout, "HELP")
 	return nil
 }
