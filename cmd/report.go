@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/ohhfishal/gotime/entry"
+	"github.com/ohhfishal/gotime/report"
 )
 
 var ErrReportUse = WrapInvalidUse("report [--start DAY] [--end DAY]")
@@ -65,22 +66,8 @@ func Report(cfg Config, args ...string) error {
 	}
 	filtered := entry.Filter(entries, flags.Start, flags.End)
 	slices.SortFunc(filtered, entry.Compare)
-	// TODO Make the output good and based on config
-	return report(cfg, filtered)
-}
-
-func report(cfg Config, entries []entry.Entry) error {
-	// TODO: Use `text/template` to make this expandable
-	for i, entry := range entries {
-		// TODO: Make this better
-		fmt.Fprintf(cfg.Stdout, "%s", entry)
-		if i < (len(entries) - 1) {
-			diff := entries[i+1].Time.Sub(entry.Time)
-			fmt.Fprintf(cfg.Stdout, " %v", diff)
-		}
-
-		fmt.Fprintln(cfg.Stdout)
-	}
-	return nil
-
+	return report.Report(report.Config{
+		Stdout:   cfg.Stdout,
+		Template: cfg.Getenv("GOTIME_REPORT_TEMPLATE"),
+	}, entries)
 }

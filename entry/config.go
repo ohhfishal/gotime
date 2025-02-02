@@ -77,7 +77,7 @@ func (ed defaultEncodeDecoder) Decode(stream string) (*Entry, error) {
 	if stream[0] != ',' {
 		return nil, fmt.Errorf(`expected :",": found "%b"`, stream[0])
 	}
-	cutIndex := strings.Index(stream, ": ")
+	cutIndex := strings.Index(stream, ":")
 	if cutIndex == -1 {
 		return nil, fmt.Errorf("unexpected eof")
 	}
