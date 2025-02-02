@@ -33,7 +33,7 @@ type Entry struct {
 
 // TODO: Use this instead of the []Entry
 type Metadata struct {
-	Schedule    []Entry
+	Schedule   []Entry
 	Categories map[string]time.Duration
 }
 
@@ -56,41 +56,40 @@ func (config Config) loadTemplate(filename string) (string, error) {
 
 func annotate(entries []entry.Entry) (*Metadata, error) {
 	schedule := []Entry{}
-  totals := map[string]time.Duration{}
+	totals := map[string]time.Duration{}
 	for i, cur := range entries {
-    next := entry.Entry{ Time: time.Now() }
-    if i < (len(entries) - 1 ) {
-      next = entries[i + 1]
-    }
+		next := entry.Entry{Time: time.Now()}
+		if i < (len(entries) - 1) {
+			next = entries[i+1]
+		}
 
-    newEntry, err := annotateEntry(cur, next)
-    if err != nil {
-      return nil, err
-    }
+		newEntry, err := annotateEntry(cur, next)
+		if err != nil {
+			return nil, err
+		}
 		schedule = append(schedule, newEntry)
-    if _, ok := totals[newEntry.Category]; ok {
-      totals[newEntry.Category] += newEntry.Duration
-    } else {
-      totals[newEntry.Category] = newEntry.Duration
-    }
+		if _, ok := totals[newEntry.Category]; ok {
+			totals[newEntry.Category] += newEntry.Duration
+		} else {
+			totals[newEntry.Category] = newEntry.Duration
+		}
 	}
-  return &Metadata {
-    Schedule: schedule,
-    Categories: totals,
-  }, nil
+	return &Metadata{
+		Schedule:   schedule,
+		Categories: totals,
+	}, nil
 }
 
 func annotateEntry(entry, next entry.Entry) (Entry, error) {
-		newEntry := Entry{
-			Category: entry.Category,
-			Note:     entry.Note,
-			Time:     entry.Time,
-      Duration: next.Time.Sub(entry.Time),
-		}
-    // TODO: Handle negative time case
-    return newEntry, nil
+	newEntry := Entry{
+		Category: entry.Category,
+		Note:     entry.Note,
+		Time:     entry.Time,
+		Duration: next.Time.Sub(entry.Time),
+	}
+	// TODO: Handle negative time case
+	return newEntry, nil
 }
-
 
 func Report(config Config, originals []entry.Entry) error {
 	entries, err := annotate(originals)
