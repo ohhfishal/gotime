@@ -7,6 +7,8 @@
 ## [v0.2.0] - 2025-01-31
 
 ### Added
+- Day filtering
+- Report using `text/template`
  
 ## [v0.1.0] - 2025-01-31
  
