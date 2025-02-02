@@ -6,9 +6,21 @@ import (
 	"time"
 )
 
+// TODO: Add tests for these
 var funcMap = map[string]any{
 	"time":     Time,
 	"duration": Duration,
+  "truncRight": TruncRightWith,
+}
+
+func TruncRightWith(size int, suffix, msg string) (string, error) {
+  if len(suffix) > size {
+    return ``, fmt.Errorf(`suffix "%s" is too large (%d)`, suffix, size)
+  }
+  if len(msg) <= size {
+    return msg, nil
+  }
+  return msg[:size - len(suffix)] + suffix, nil
 }
 
 func Time(t time.Time) (string, error) {

@@ -32,9 +32,9 @@ type Entry struct {
 }
 
 // TODO: Use this instead of the []Entry
-type metadata struct {
-	Entries    []Entry
-	Categories map[string]string
+type Metadata struct {
+	Schedule    []Entry
+	Categories map[string]time.Duration
 }
 
 func (config Config) getTemplate() (string, error) {
@@ -54,31 +54,43 @@ func (config Config) loadTemplate(filename string) (string, error) {
 	return string(bytes), nil
 }
 
-func annotate(entries []entry.Entry) ([]Entry, error) {
-	annotated := []Entry{}
-	for i, entry := range entries {
+func annotate(entries []entry.Entry) (*Metadata, error) {
+	schedule := []Entry{}
+  totals := map[string]time.Duration{}
+	for i, cur := range entries {
+    next := entry.Entry{ Time: time.Now() }
+    if i < (len(entries) - 1 ) {
+      next = entries[i + 1]
+    }
+
+    newEntry, err := annotateEntry(cur, next)
+    if err != nil {
+      return nil, err
+    }
+		schedule = append(schedule, newEntry)
+    if _, ok := totals[newEntry.Category]; ok {
+      totals[newEntry.Category] += newEntry.Duration
+    } else {
+      totals[newEntry.Category] = newEntry.Duration
+    }
+	}
+  return &Metadata {
+    Schedule: schedule,
+    Categories: totals,
+  }, nil
+}
+
+func annotateEntry(entry, next entry.Entry) (Entry, error) {
 		newEntry := Entry{
 			Category: entry.Category,
 			Note:     entry.Note,
 			Time:     entry.Time,
+      Duration: next.Time.Sub(entry.Time),
 		}
-
-		endTime := time.Now()
-		if i < (len(entries) - 1) {
-			endTime = entries[i+1].Time
-		}
-		// TODO: This breaks if the result becomes negative
-		duration := endTime.Sub(entry.Time)
-		if duration.Seconds() < 0 {
-			return []Entry{}, fmt.Errorf("invalid entry: future time: %s (%s)", entry, duration)
-		}
-		newEntry.Duration = duration
-		annotated = append(annotated, newEntry)
-
-	}
-	return annotated, nil
-
+    // TODO: Handle negative time case
+    return newEntry, nil
 }
+
 
 func Report(config Config, originals []entry.Entry) error {
 	entries, err := annotate(originals)
