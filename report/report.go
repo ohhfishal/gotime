@@ -54,19 +54,31 @@ func (config Config) loadTemplate(filename string) (string, error) {
 	return string(bytes), nil
 }
 
+func deviceNow() time.Time {
+	final, err := time.Parse(time.DateTime, time.Now().Format(time.DateTime))
+	if err != nil {
+		// TODO: Consider if we keep this as a panic
+		panic(fmt.Errorf("could not get device time: %w", err))
+	}
+	return final
+
+}
+
 func annotate(entries []entry.Entry) (*Metadata, error) {
 	schedule := []Entry{}
 	totals := map[string]time.Duration{}
 	for i, cur := range entries {
-		next := entry.Entry{Time: time.Now()}
+		newEntry := Entry{
+			Category: cur.Category,
+			Note:     cur.Note,
+			Time:     cur.Time,
+		}
 		if i < (len(entries) - 1) {
-			next = entries[i+1]
+			newEntry.Duration = entries[i+1].Time.Sub(cur.Time)
+		} else {
+			newEntry.Duration = deviceNow().Sub(cur.Time)
 		}
 
-		newEntry, err := annotateEntry(cur, next)
-		if err != nil {
-			return nil, err
-		}
 		schedule = append(schedule, newEntry)
 		if _, ok := totals[newEntry.Category]; ok {
 			totals[newEntry.Category] += newEntry.Duration
@@ -78,17 +90,6 @@ func annotate(entries []entry.Entry) (*Metadata, error) {
 		Schedule:   schedule,
 		Categories: totals,
 	}, nil
-}
-
-func annotateEntry(entry, next entry.Entry) (Entry, error) {
-	newEntry := Entry{
-		Category: entry.Category,
-		Note:     entry.Note,
-		Time:     entry.Time,
-		Duration: next.Time.Sub(entry.Time),
-	}
-	// TODO: Handle negative time case
-	return newEntry, nil
 }
 
 func Report(config Config, originals []entry.Entry) error {

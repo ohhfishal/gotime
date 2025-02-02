@@ -41,7 +41,7 @@ func parseReportFlags(stdout io.Writer, args []string) (reportFlags, error) {
 		return reportFlags{}, fmt.Errorf("parsing today: %w", err)
 	}
 	flags.Start = today.Add(time.Duration(flags.back * int(time.Hour*24)))
-	flags.End = today.Add(time.Duration((1 + flags.forward) * int(time.Hour*24)))
+	flags.End = time.Now().Add(time.Duration((flags.forward) * int(time.Hour*24)))
 	return flags, nil
 }
 
@@ -69,5 +69,5 @@ func Report(cfg Config, args ...string) error {
 	return report.Report(report.Config{
 		Stdout:   cfg.Stdout,
 		Template: cfg.Getenv("GOTIME_REPORT_TEMPLATE"),
-	}, entries)
+	}, filtered)
 }
