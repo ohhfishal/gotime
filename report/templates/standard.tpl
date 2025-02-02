@@ -1,9 +1,9 @@
- Category     | Start | Length    | Note
- --------     | ----- | ------    | ----
+ Category       Start   Length      Note
+ --------       -----   ------      ----
 {{range .Schedule -}}
-  {{- truncRight 12 "..." .Category | printf " %-12s | " -}} 
-  {{- time .Time | printf "%s | " -}}
-  {{- duration .Duration | printf "%-9s | " -}}
+  {{- truncRight 12 "..." .Category | printf " %-12s   " -}} 
+  {{- time .Time | printf "%s   " -}}
+  {{- duration .Duration | printf "%-9s   " -}}
   {{- trunc 30 .Note | printf "%s\n" -}}
 {{- end }}
 
