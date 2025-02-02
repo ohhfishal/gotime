@@ -35,14 +35,14 @@ func parseReportFlags(stdout io.Writer, args []string) (reportFlags, error) {
 	if err != nil {
 		return reportFlags{}, err
 	}
-	// TODO: Calculate the time shifts
-	if flags.back != 0 || flags.forward != 0 {
-		fmt.Fprintln(stdout, "time flags not implemented")
-		return reportFlags{}, errors.New("time flags not implemented")
+	now := time.Now().Format(time.DateOnly)
+	today, err := time.Parse(time.DateOnly, now)
+	if err != nil {
+		return reportFlags{}, fmt.Errorf("parsing today: %w", err)
 	}
-	flags.End = time.Now()
+	flags.Start = today.Add(time.Duration(flags.back * int(time.Hour*24)))
+	flags.End = today.Add(time.Duration((1 + flags.forward) * int(time.Hour*24)))
 	return flags, nil
-
 }
 
 func Report(cfg Config, args ...string) error {
