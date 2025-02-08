@@ -4,7 +4,7 @@
   {{- truncRight 12 "..." .Category | printf " %-12s   " -}} 
   {{- time .Time | printf "%s   " -}}
   {{- duration .Duration | printf "%-9s   " -}}
-  {{- trunc 30 .Note | printf "%s\n" -}}
+  {{- truncRight 40 "..." .Note | printf "%s\n" -}}
 {{- end }}
 
  Category       Length  

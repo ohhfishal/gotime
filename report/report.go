@@ -8,7 +8,6 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/Masterminds/sprig/v3"
 	"github.com/ohhfishal/gotime/entry"
 )
 
@@ -102,7 +101,7 @@ func Report(config Config, originals []entry.Entry) error {
 		return fmt.Errorf("loading template: %w", err)
 	}
 
-	tmpl, err := template.New("report-template").Funcs(sprig.FuncMap()).Funcs(funcMap).Parse(templateString)
+	tmpl, err := template.New("report-template").Funcs(funcMap).Parse(templateString)
 	if err != nil {
 		return fmt.Errorf("parsing template: %w", err)
 	}
