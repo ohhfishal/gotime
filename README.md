@@ -1,6 +1,18 @@
 # gotime
 Go CLI to track time spent on tasks
 
+## Install
+
+```bash
+go install github.com/ohhfishal/gotime@latest
+```
+
+## Build
+```bash
+git clone git@github.com:ohhfishal/gotime.git
+go build
+```
+
 ## Basic Examples
 If the following were run throughout the day:
 ```
@@ -31,11 +43,6 @@ The final `gotime report` may produce:
 
 ```
 
-## Building
-
-```bash
-go build
-```
 
 ## ENV Configuration
 
