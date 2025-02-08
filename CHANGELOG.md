@@ -4,6 +4,15 @@
  
 ## [Upcoming]
 
+## [v0.3.0] - 2025-02-08
+
+### Added
+- Help messages for `report` and `log` commands
+- New `log` subcommands
+  - `append`
+  - `continue`
+  - `new` (default)
+
 ## [v0.2.0] - 2025-02-02
 
 ### Added
@@ -14,6 +23,7 @@
  
 - Initial release
  
-[upcoming]: https://github.com/ohhfishal/gotime/compare/v0.1.0...HEAD
+[upcoming]: https://github.com/ohhfishal/gotime/compare/v0.3.0...HEAD
+[v0.2.0]: https://github.com/ohhfishal/gotime/releases/tag/v0.3.0
 [v0.2.0]: https://github.com/ohhfishal/gotime/releases/tag/v0.2.0
 [v0.1.0]: https://github.com/ohhfishal/gotime/releases/tag/v0.1.0
