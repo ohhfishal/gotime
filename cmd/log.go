@@ -11,6 +11,7 @@ import (
 )
 
 var ErrFileEmpty = errors.New("no entries in file")
+var ErrCategoryNotFound = errors.New("category not found")
 
 type LogCmd struct {
 	New      NewCmd      `default:"withargs" cmd: "" help:"Log using a custom category and note."`
@@ -55,7 +56,7 @@ func (cmd *AppendCmd) Run(cfg Config) error {
 }
 
 func (cmd *ContinueCmd) Run(cfg Config) error {
-	last, err := cfg.LastEntry()
+	last, err := cfg.LastEntryOf(cmd.Category)
 	if err != nil {
 		return err
 	}
@@ -68,6 +69,25 @@ func (cmd *ContinueCmd) Run(cfg Config) error {
 	return cfg.Write(newEntry)
 }
 
+func (c Config) LastEntryOf(category string) (*entry.Entry, error) {
+	entries, err := c.GetAllEntries()
+	if err != nil {
+		return nil, fmt.Errorf(`reading entries: %w`, err)
+	}
+
+	var last *entry.Entry
+	for _, entry := range entries {
+		if entry.Category == category {
+			last = &entry
+		}
+	}
+
+	if last == nil {
+		return nil, ErrCategoryNotFound
+	}
+	return last, nil
+}
+
 func (c Config) LastEntry() (*entry.Entry, error) {
 	entries, err := c.GetAllEntries()
 	if err != nil {
@@ -77,7 +97,7 @@ func (c Config) LastEntry() (*entry.Entry, error) {
 	if len(entries) == 0 {
 		return nil, ErrFileEmpty
 	}
-	return &entries[0], nil
+	return &entries[len(entries)-1], nil
 }
 
 func (c Config) Write(newEntry entry.Entry) error {

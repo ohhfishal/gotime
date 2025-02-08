@@ -82,6 +82,7 @@ func TestLog(t *testing.T) {
 			Name: "continue/valid input/valid file",
 			Args: []string{"continue", "current"},
 			LogState: []entry.Entry{
+				{Time: now, Category: "current", Note: "First"},
 				{Time: now, Category: "current", Note: "Original"},
 				{Time: now, Category: "junk", Note: "Bad Note"},
 			},
@@ -95,7 +96,17 @@ func TestLog(t *testing.T) {
 			Name: "continue/empty file",
 			Args: []string{"continue", "category"},
 			Expected: Expected{
-				Err: ErrFileEmpty,
+				Err: ErrCategoryNotFound,
+			},
+		},
+		{
+			Name: "continue/missing",
+			Args: []string{"continue", "category"},
+			LogState: []entry.Entry{
+				{Time: now, Category: "junk", Note: "Bad Note"},
+			},
+			Expected: Expected{
+				Err: ErrCategoryNotFound,
 			},
 		},
 		{
@@ -138,18 +149,22 @@ func TestLog(t *testing.T) {
 				require.ErrorIs(err, test.Expected.Err)
 				return
 			}
+
 			require.Nil(err)
 			assert.Equal(t, test.Expected.Stdout, tc.Stdout())
 			assert.Equal(t, test.Expected.Stderr, tc.Stderr())
 
 			entries, err := config.GetAllEntries()
 			require.Nil(err)
-			expected := test.LogState
-			var zero entry.Entry
-			if test.Expected.Entry != zero {
-				expected = append(expected, test.Expected.Entry)
+			if len(entries) != 0 {
+				entries = entries[:len(entries)-1]
 			}
-			AssertEqualSlice(t, expected, entries)
+			AssertEqualSlice(t, test.LogState, entries)
+
+			last, err := config.LastEntry()
+			require.Nil(err)
+			AssertEqual(t, test.Expected.Entry, *last)
+
 		})
 	}
 }
