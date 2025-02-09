@@ -46,6 +46,7 @@ The final `gotime report` may produce:
 
 ## ENV Configuration
 
+
 ### Example
 ```bash
 export GOTIME_LOG="/home/user/.gotime/schedule.log"
@@ -53,5 +54,5 @@ export GOTIME_LOG="/home/user/.gotime/schedule.log"
 
 | Name | Description | Default | 
 | ---- | ----------- | ------- | 
-| `GOTIME_LOG` | Path to the file to read/write tasks in (BAD DEFAULT SET THIS) | `gotime.log` |
-| `GOTIME_REPORT_TEMPLATE` | Override for `report` see `report/templates/standard.tpl` | | 
+| `GOTIME_LOG` | Filepath to log file used to `log` and `report` tasks. | `$HOME/.config/gotime.log` |
+| `GOTIME_REPORT_TEMPLATE` | Override for `report` see `report/templates/standard.tpl`. | | 

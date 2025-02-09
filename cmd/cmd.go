@@ -17,7 +17,7 @@ var commands = map[string]Command{
 	"help":   Help,
 }
 
-const DefaultLogPath = "gotime.log"
+const DefaultLogPath = "$HOME/.config/gotime.log"
 
 var ErrInvalidUse = errors.New(`usage: gotime`)
 
@@ -48,7 +48,8 @@ func Run(args []string, config ...Config) error {
 }
 
 func (c Config) LogPath() string {
-	return c.GetenvDefault("GOTIME_LOG", DefaultLogPath)
+	unexpanded := c.GetenvDefault("GOTIME_LOG", DefaultLogPath)
+	return os.Expand(unexpanded, c.Getenv)
 }
 
 func (c Config) GetAllEntries() ([]entry.Entry, error) {
