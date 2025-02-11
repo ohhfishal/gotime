@@ -15,4 +15,7 @@
   {{- duration $total | printf "%-9s" }}
   {{- printf "\n" -}}
 {{- end -}}
+  {{- truncRight 12 "..." "total" | printf " %-12s   " -}}
+  {{- duration .Total | printf "%-9s" }}
+  {{- printf "\n" -}}
 {{- end -}}

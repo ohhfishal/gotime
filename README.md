@@ -43,6 +43,9 @@ The final `gotime report` may produce:
 
 ```
 
+## Special categories
+
+`out` is treated as a special entry category. It's time is not used in calculating the `total` field in the standard report.
 
 ## ENV Configuration
 
