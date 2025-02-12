@@ -1,4 +1,6 @@
 # gotime
+[![Go Report Card](https://goreportcard.com/badge/github.com/ohhfishal/gotime)](https://goreportcard.com/report/github.com/ohhfishal/gotime)
+
 Go CLI to track time spent on tasks
 
 ## Install
