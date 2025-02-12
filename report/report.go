@@ -34,6 +34,7 @@ type Entry struct {
 type Metadata struct {
 	Schedule   []Entry
 	Categories map[string]time.Duration
+	Total      time.Duration
 }
 
 func (config Config) getTemplate() (string, error) {
@@ -66,6 +67,7 @@ func deviceNow() time.Time {
 func annotate(entries []entry.Entry) (*Metadata, error) {
 	schedule := []Entry{}
 	totals := map[string]time.Duration{}
+	var total time.Duration
 	for i, cur := range entries {
 		newEntry := Entry{
 			Category: cur.Category,
@@ -84,10 +86,16 @@ func annotate(entries []entry.Entry) (*Metadata, error) {
 		} else {
 			totals[newEntry.Category] = newEntry.Duration
 		}
+
+		// TODO: Make this logic more generalizable
+		if newEntry.Category != `out` {
+			total += newEntry.Duration
+		}
 	}
 	return &Metadata{
-		Schedule:   schedule,
 		Categories: totals,
+		Schedule:   schedule,
+		Total:      total,
 	}, nil
 }
 
