@@ -1,13 +1,13 @@
 package entry
 
 import (
-  "fmt"
-  "strings"
-  "time"
+	"fmt"
+	"strings"
+	"time"
 )
 
 func Decode(line string) (Entry, error) {
-  var entry Entry
+	var entry Entry
 	var err error
 
 	// Parse time
@@ -34,4 +34,3 @@ func Decode(line string) (Entry, error) {
 	entry.Note = strings.TrimSpace(line[cutIndex+1:])
 	return entry, nil
 }
-

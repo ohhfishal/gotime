@@ -101,7 +101,7 @@ func (c Config) LastEntry() (*entry.Entry, error) {
 }
 
 func (c Config) WriteToLog(newEntry entry.Entry) error {
-  return file.WriteTo(c.LogPath(), c.FilePerms(), newEntry)
+	return file.WriteTo(c.LogPath(), c.FilePerms(), newEntry)
 }
 
 func Log(cfg Config, args ...string) error {

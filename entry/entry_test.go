@@ -41,7 +41,7 @@ func TestEncodeDecode(t *testing.T) {
 			require.Nil(err)
 
 			t.Log(buffer.String())
-      entry, err := Decode(buffer.String())
+			entry, err := Decode(buffer.String())
 			require.Nil(err)
 			RequireEntryEqual(t, entry, test.Entry)
 		})
@@ -90,7 +90,7 @@ func TestReadAll(t *testing.T) {
 
 			reader := strings.NewReader(buffer.String())
 			t.Logf("Wrote:\n%s", buffer.String())
-      entries, err := file.ReadAll(reader, Decode)
+			entries, err := file.ReadAll(reader, Decode)
 			// entries, err := ReadAll(reader)
 			require.Nil(err)
 

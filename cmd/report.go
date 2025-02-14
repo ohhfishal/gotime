@@ -10,9 +10,9 @@ import (
 )
 
 type ReportCmd struct {
-	Back    time.Duration `default:"0h0m" help:"Offset to go back from 00:00 today (today@00:00 - offset)."`
-	Forward time.Duration `default:"24h" help:"Offset to go forward from 00:00 today (today@00:00 + offset)."`
-  Template string `optional:"" type:"existingfile" help:"text/templat to use in making report"`
+	Back     time.Duration `default:"0h0m" help:"Offset to go back from 00:00 today (today@00:00 - offset)."`
+	Forward  time.Duration `default:"24h" help:"Offset to go forward from 00:00 today (today@00:00 + offset)."`
+	Template string        `optional:"" type:"existingfile" help:"text/templat to use in making report"`
 }
 
 func (cmd *ReportCmd) Run(cfg Config) error {

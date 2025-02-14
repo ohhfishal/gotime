@@ -61,7 +61,7 @@ func (c Config) LogPath() string {
 }
 
 func (c Config) GetAllEntries() ([]entry.Entry, error) {
-  return file.ReadAllFrom(c.LogPath(), entry.Decode)
+	return file.ReadAllFrom(c.LogPath(), entry.Decode)
 }
 
 func (c Config) GetenvDefault(key, value string) string {
@@ -72,7 +72,7 @@ func (c Config) GetenvDefault(key, value string) string {
 }
 
 func (c Config) FilePerms() int {
-  return os.O_APPEND | os.O_CREATE | os.O_WRONLY
+	return os.O_APPEND | os.O_CREATE | os.O_WRONLY
 }
 
 func DefaultConfig(config ...Config) Config {

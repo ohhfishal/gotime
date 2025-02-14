@@ -1,13 +1,13 @@
 package file
 
 import (
-  "fmt"
-  "io"
-  "os"
+	"fmt"
+	"io"
+	"os"
 )
 
 type Encodeable interface {
-  Encode() string
+	Encode() string
 }
 
 func WriteTo[T Encodeable](path string, perms int, item T) error {
@@ -16,12 +16,12 @@ func WriteTo[T Encodeable](path string, perms int, item T) error {
 		return fmt.Errorf(`can not open "%s": %w`, path, err)
 	}
 	defer file.Close()
-  return Write(file, item)
+	return Write(file, item)
 
 }
 
 func Write[T Encodeable](write io.Writer, item T) error {
-  _, err := fmt.Fprintln(write, item.Encode())
-  return err
+	_, err := fmt.Fprintln(write, item.Encode())
+	return err
 
 }

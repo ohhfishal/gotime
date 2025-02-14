@@ -1,7 +1,7 @@
 package entry
 
 import (
-  "fmt"
+	"fmt"
 )
 
 func (entry Entry) Encode() string {
