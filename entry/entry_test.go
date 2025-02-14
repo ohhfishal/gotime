@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ohhfishal/gotime/file"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -36,14 +37,13 @@ func TestEncodeDecode(t *testing.T) {
 			require := require.New(t)
 
 			var buffer strings.Builder
-			err := Write(&buffer, test.Entry)
+			err := file.Write(&buffer, test.Entry)
 			require.Nil(err)
 
 			t.Log(buffer.String())
-			reader := strings.NewReader(buffer.String())
-			entry, err := Read(reader)
+      entry, err := Decode(buffer.String())
 			require.Nil(err)
-			RequireEntryEqual(t, *entry, test.Entry)
+			RequireEntryEqual(t, entry, test.Entry)
 		})
 	}
 }
@@ -84,13 +84,14 @@ func TestReadAll(t *testing.T) {
 			var buffer strings.Builder
 
 			for _, entry := range test.Entries {
-				err := Write(&buffer, entry)
+				err := file.Write(&buffer, entry)
 				require.Nil(err)
 			}
 
 			reader := strings.NewReader(buffer.String())
 			t.Logf("Wrote:\n%s", buffer.String())
-			entries, err := ReadAll(reader)
+      entries, err := file.ReadAll(reader, Decode)
+			// entries, err := ReadAll(reader)
 			require.Nil(err)
 
 			assert.Equal(len(test.Entries), len(entries), "entries length")

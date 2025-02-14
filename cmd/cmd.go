@@ -1,12 +1,12 @@
 package cmd
 
 import (
-	"fmt"
 	"io"
 	"os"
 
 	"github.com/alecthomas/kong"
 	"github.com/ohhfishal/gotime/entry"
+	"github.com/ohhfishal/gotime/file"
 )
 
 const DefaultLogPath = "$HOME/.config/gotime.log"
@@ -61,19 +61,7 @@ func (c Config) LogPath() string {
 }
 
 func (c Config) GetAllEntries() ([]entry.Entry, error) {
-	var zero []entry.Entry
-	path := c.LogPath()
-	file, err := os.Open(path)
-	if err != nil {
-		return zero, fmt.Errorf(`can not open "%s": %w`, path, err)
-	}
-	defer file.Close()
-
-	entries, err := entry.ReadAll(file)
-	if err != nil {
-		return zero, fmt.Errorf(`parsing file "%s": %w`, path, err)
-	}
-	return entries, nil
+  return file.ReadAllFrom(c.LogPath(), entry.Decode)
 }
 
 func (c Config) GetenvDefault(key, value string) string {
@@ -83,24 +71,8 @@ func (c Config) GetenvDefault(key, value string) string {
 	return value
 }
 
-func (c Config) OpenWriteCloser() (io.WriteCloser, error) {
-	path := c.LogPath()
-
-	perms := os.O_APPEND | os.O_WRONLY
-	if c.CanCreateFile() {
-		perms = os.O_APPEND | os.O_CREATE | os.O_WRONLY
-	}
-
-	file, err := os.OpenFile(path, perms, 0644)
-	if err != nil {
-		return nil, fmt.Errorf(`can not open "%s": %w`, path, err)
-	}
-	return file, nil
-}
-
-func (c Config) CanCreateFile() bool {
-	// TODO: Allow control of this via an env
-	return true
+func (c Config) FilePerms() int {
+  return os.O_APPEND | os.O_CREATE | os.O_WRONLY
 }
 
 func DefaultConfig(config ...Config) Config {

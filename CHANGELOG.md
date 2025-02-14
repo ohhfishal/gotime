@@ -4,6 +4,11 @@
  
 ## [Upcoming]
 
+## [v0.3.1] - 2025-02-14
+
+### Changed
+- Moved env option `GOTIME_REPORT_TEMPLATE` to a flag
+
 ## [v0.3.0] - 2025-02-08
 
 ### Added
