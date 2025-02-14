@@ -1,4 +1,6 @@
 # gotime
+[![Go Report Card](https://goreportcard.com/badge/github.com/ohhfishal/gotime)](https://goreportcard.com/report/github.com/ohhfishal/gotime)
+
 Go CLI to track time spent on tasks
 
 ## Install
@@ -58,4 +60,3 @@ export GOTIME_LOG="/home/user/.gotime/schedule.log"
 | Name | Description | Default | 
 | ---- | ----------- | ------- | 
 | `GOTIME_LOG` | Filepath to log file used to `log` and `report` tasks. | `$HOME/.config/gotime.log` |
-| `GOTIME_REPORT_TEMPLATE` | Override for `report` see `report/templates/standard.tpl`. | | 

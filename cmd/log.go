@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/alecthomas/kong"
 	"github.com/ohhfishal/gotime/entry"
+	"github.com/ohhfishal/gotime/file"
 )
 
 var ErrFileEmpty = errors.New("no entries in file")
@@ -38,7 +38,7 @@ func (cmd *NewCmd) Run(cfg Config) error {
 		Note:     strings.Join(cmd.Note, " "),
 		Time:     time.Now(),
 	}
-	return cfg.Write(newEntry)
+	return cfg.WriteToLog(newEntry)
 }
 
 func (cmd *AppendCmd) Run(cfg Config) error {
@@ -52,7 +52,7 @@ func (cmd *AppendCmd) Run(cfg Config) error {
 		Note:     strings.Join(cmd.Note, " "),
 		Time:     time.Now(),
 	}
-	return cfg.Write(newEntry)
+	return cfg.WriteToLog(newEntry)
 }
 
 func (cmd *ContinueCmd) Run(cfg Config) error {
@@ -66,7 +66,7 @@ func (cmd *ContinueCmd) Run(cfg Config) error {
 		Note:     "Cont: " + last.Note,
 		Time:     time.Now(),
 	}
-	return cfg.Write(newEntry)
+	return cfg.WriteToLog(newEntry)
 }
 
 func (c Config) LastEntryOf(category string) (*entry.Entry, error) {
@@ -100,44 +100,11 @@ func (c Config) LastEntry() (*entry.Entry, error) {
 	return &entries[len(entries)-1], nil
 }
 
-func (c Config) Write(newEntry entry.Entry) error {
-	writer, err := c.OpenWriteCloser()
-	if err != nil {
-		return fmt.Errorf(`opening file: %w`, err)
-	}
-	defer writer.Close()
-
-	// TODO: Pass in an entry.Config to allow different file encodings EX timefmt
-	if err := entry.Write(writer, newEntry); err != nil {
-		return fmt.Errorf(`writing to file: %w`, err)
-	}
-	return nil
+func (c Config) WriteToLog(newEntry entry.Entry) error {
+	return file.WriteTo(c.LogPath(), c.FilePerms(), newEntry)
 }
 
 func Log(cfg Config, args ...string) error {
 	var cmd LogCmd
-	var exit bool
-	parser, err := kong.New(
-		&cmd,
-		kong.Name("gotime log"),
-		kong.Description("Log a new entry in timesheet file."),
-		kong.Exit(func(_ int) { exit = true }),
-		kong.Bind(cfg),
-	)
-	if err != nil {
-		return err
-	}
-	parser.Stdout = cfg.Stdout
-	parser.Stderr = cfg.Stderr
-
-	context, err := parser.Parse(args)
-	if err != nil || exit {
-		return err
-	}
-
-	err = context.Run()
-	if err != nil {
-		return err
-	}
-	return nil
+	return RunCmd(cfg, &cmd, args...)
 }

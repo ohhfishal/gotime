@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ohhfishal/gotime/entry"
+	"github.com/ohhfishal/gotime/file"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -91,16 +92,16 @@ func newFile(t *testing.T, entries []entry.Entry) string {
 	require := require.New(t)
 
 	dir := t.TempDir()
-	file, err := os.CreateTemp(dir, "gotime-test-*.log")
-	defer file.Close()
+	writer, err := os.CreateTemp(dir, "gotime-test-*.log")
+	defer writer.Close()
 	require.Nil(err)
 
 	for _, newEntry := range entries {
-		err := entry.Write(file, newEntry)
+		err := file.Write(writer, newEntry)
 		require.Nil(err)
 	}
 
-	return file.Name()
+	return writer.Name()
 }
 
 func TestCommand(t *testing.T) {
