@@ -9,7 +9,7 @@
 ### Added
 - Initial `v1` design document
 - Help messages to all commands
-- Install section to `README.md`
+- `README.md` improvements
 - Total logged time to standard `report` template
 - Special "out" log category
 
