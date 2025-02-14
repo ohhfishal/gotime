@@ -1,29 +1,15 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"os"
 
+	"github.com/alecthomas/kong"
 	"github.com/ohhfishal/gotime/entry"
 )
 
-type Command func(Config, ...string) error
-
-var commands = map[string]Command{
-	"report": Report,
-	"log":    Log,
-	"help":   Help,
-}
-
 const DefaultLogPath = "$HOME/.config/gotime.log"
-
-var ErrInvalidUse = errors.New(`usage: gotime`)
-
-func WrapInvalidUse(msg string) error {
-	return fmt.Errorf("%w %s\nTry `gotime help [command]` for more information.", ErrInvalidUse, msg)
-}
 
 // TODO: Make GetAllEntries and OpenWriter/Reader testable
 type Config struct {
@@ -31,20 +17,42 @@ type Config struct {
 	Stdout io.Writer
 	Stderr io.Writer
 	Getenv func(string) string
-	// TODO: Private struct that unmarshals from ENVs
+}
+
+type RootCmd struct {
+	Log    LogCmd    `cmd:"" help:"Manage journal entries"`
+	Report ReportCmd `cmd:"" help:"Print summary report"`
 }
 
 func Run(args []string, config ...Config) error {
 	cfg := DefaultConfig(config...)
-	if len(args) == 0 {
-		return Help(cfg, args...)
+	var cmd RootCmd
+	return RunCmd(cfg, &cmd, args...)
+}
+
+func RunCmd(cfg Config, cmd any, args ...string) error {
+	var exit bool
+	parser, err := kong.New(
+		cmd,
+		kong.Exit(func(_ int) { exit = true }),
+		kong.Bind(cfg),
+	)
+	if err != nil {
+		return err
+	}
+	parser.Stdout = cfg.Stdout
+	parser.Stderr = cfg.Stderr
+
+	context, err := parser.Parse(args)
+	if err != nil || exit {
+		return err
 	}
 
-	if command, ok := commands[args[0]]; ok {
-		return command(cfg, args[1:]...)
+	err = context.Run()
+	if err != nil {
+		return err
 	}
-	// TODO: Parse some flags to see if they are trying to do something else?
-	return Log(cfg, args...)
+	return nil
 }
 
 func (c Config) LogPath() string {

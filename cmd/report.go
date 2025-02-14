@@ -6,7 +6,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/alecthomas/kong"
 	"github.com/ohhfishal/gotime/entry"
 	"github.com/ohhfishal/gotime/report"
 )
@@ -47,31 +46,5 @@ func (cmd *ReportCmd) Run(cfg Config) error {
 
 func Report(cfg Config, args ...string) error {
 	var cmd ReportCmd
-	// TODO: Totally duplicated code...
-	var exit bool
-	parser, err := kong.New(
-		&cmd,
-		kong.Name("gotime report"),
-		// TODO: Use a different parser so we can specify days...
-		kong.Description(`Print a timesheet to stdout. DURATION is parsed using golang's time.ParseDuration function (Example: "24h5h").`),
-		kong.Exit(func(code int) { exit = true }),
-		kong.Bind(cfg),
-	)
-
-	if err != nil {
-		return err
-	}
-	parser.Stdout = cfg.Stdout
-	parser.Stderr = cfg.Stderr
-
-	context, err := parser.Parse(args)
-	if err != nil || exit {
-		return err
-	}
-
-	err = context.Run()
-	if err != nil {
-		return err
-	}
-	return nil
+	return RunCmd(cfg, &cmd, args...)
 }

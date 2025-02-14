@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/alecthomas/kong"
 	"github.com/ohhfishal/gotime/entry"
 )
 
@@ -116,28 +115,5 @@ func (c Config) Write(newEntry entry.Entry) error {
 
 func Log(cfg Config, args ...string) error {
 	var cmd LogCmd
-	var exit bool
-	parser, err := kong.New(
-		&cmd,
-		kong.Name("gotime log"),
-		kong.Description("Log a new entry in timesheet file."),
-		kong.Exit(func(_ int) { exit = true }),
-		kong.Bind(cfg),
-	)
-	if err != nil {
-		return err
-	}
-	parser.Stdout = cfg.Stdout
-	parser.Stderr = cfg.Stderr
-
-	context, err := parser.Parse(args)
-	if err != nil || exit {
-		return err
-	}
-
-	err = context.Run()
-	if err != nil {
-		return err
-	}
-	return nil
+	return RunCmd(cfg, &cmd, args...)
 }
