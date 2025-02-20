@@ -114,11 +114,12 @@ func TestFilter(t *testing.T) {
 
 func TestDurationMaps(t *testing.T) {
 	type Test struct {
-		Name       string
-		Times      []string
-		Categories []string
-		Cutoff     string
-		Expected   map[string]string
+		Name          string
+		Times         []string
+		Categories    []string
+		Cutoff        string
+		ExpectedMap   map[string]string
+		ExpectedTotal time.Duration
 	}
 
 	tests := []Test{
@@ -131,9 +132,33 @@ func TestDurationMaps(t *testing.T) {
 				`test/a`,
 			},
 			Cutoff: `2025-01-01 08:30:00`,
-			Expected: map[string]string{
+			ExpectedMap: map[string]string{
 				`test/a`: `30m0s`,
 			},
+			ExpectedTotal: 30 * time.Minute,
+		},
+		{
+			Name: `complex example works`,
+			Times: []string{
+				`2025-01-01 08:00:00`,
+				`2025-01-01 09:00:00`,
+				`2025-01-01 09:30:00`,
+				`2025-01-01 11:30:00`,
+			},
+			Categories: []string{
+				`test/a`,
+				`test/b`,
+				`test/c`,
+				`test/d`,
+			},
+			Cutoff: `2025-01-01 12:30:00`,
+			ExpectedMap: map[string]string{
+				`test/a`: `1h0m0s`,
+				`test/b`: `30m0s`,
+				`test/c`: `2h0m0s`,
+				`test/d`: `1h0m0s`,
+			},
+			ExpectedTotal: time.Hour + (30 * time.Minute) + (2 * time.Hour) + time.Hour,
 		},
 	}
 
@@ -154,18 +179,15 @@ func TestDurationMaps(t *testing.T) {
 			parsed, err := time.Parse(time.DateTime, test.Cutoff)
 			require.Nil(err)
 			result := DurationMap(entries, parsed)
-			for key, expected := range test.Expected {
+			for key, expected := range test.ExpectedMap {
 				unparsed, ok := result[key]
 				require.True(ok)
 				require.Equal(expected, unparsed.String())
 			}
+			require.Equal(test.ExpectedTotal, Total(result))
 		})
 
 	}
-}
-
-func TestTotal(t *testing.T) {
-	t.Fail()
 }
 
 func TestCompare(t *testing.T) {
