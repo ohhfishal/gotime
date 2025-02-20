@@ -17,6 +17,7 @@ type LogCmd struct {
 	New      NewCmd      `default:"withargs" cmd: "" help:"Log using a custom category and note."`
 	Append   AppendCmd   `cmd: "" help:"Log using the last category in the log."`
 	Continue ContinueCmd `cmd: "" help:"Log using the last message of a given category."`
+	Until    UntilCmd    `cmd: "" help:"How long until a certain amount of time is logged."`
 }
 
 type NewCmd struct {
