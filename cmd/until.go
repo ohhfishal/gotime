@@ -43,16 +43,8 @@ func (cmd *UntilCmd) Run(cfg Config) error {
 		return fmt.Errorf(`unknown category: ""%s`, cmd.Category)
 	}
 
-	if cmd.Template != `` {
-		return fmt.Errorf(`text/template not implemented for "log until"`)
-	}
-
-	duration, err := report.Duration(cmd.Duration - total)
-	if err != nil {
-		return fmt.Errorf(`parsing until duration: %w`, err)
-	}
-
-	fmt.Fprintln(cfg.Stdout, duration)
+	// TODO: Parse the template into a string
+	report.ReportUntil(cfg.Stdout, cmd.Template, total, cmd.Duration)
 
 	return nil
 }

@@ -38,6 +38,7 @@ type Metadata struct {
 }
 
 func (config Config) getTemplate() (string, error) {
+	// TODO: Remove this and just read the path from the args
 	// Check for default templates
 	tmpl, ok := defaultTemplates[config.Template]
 	if !ok {
@@ -97,6 +98,20 @@ func annotate(entries []entry.Entry) (*Metadata, error) {
 		Schedule:   schedule,
 		Total:      total,
 	}, nil
+}
+
+func ReportUntil(stdout io.Writer, template string, current, total time.Duration) error {
+	duration, err := Duration(total - current)
+	if err != nil {
+		return fmt.Errorf(`parsing until duration: %w`, err)
+	}
+
+	if template != `` {
+		// TODO: Handle the template here
+		return fmt.Errorf(`text/template not implemented for "log until"`)
+	}
+	fmt.Fprintln(stdout, duration)
+	return nil
 }
 
 func Report(config Config, originals []entry.Entry) error {
