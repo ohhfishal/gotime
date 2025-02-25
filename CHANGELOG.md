@@ -3,6 +3,10 @@
 # Change Log
  
 ## [Upcoming]
+### Added
+- `log until` command
+### Changed
+- `report` standard formatting spacing
 
 ## [v0.3.1] - 2025-02-14
 

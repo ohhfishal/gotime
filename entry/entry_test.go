@@ -20,8 +20,7 @@ func TestEncodeDecode(t *testing.T) {
 
 	tests := []EncodeDecodeTest{
 		{
-			Name:  "empty",
-			Entry: Entry{},
+			Name: "empty", Entry: Entry{},
 		},
 		{
 			Name: "normal",
@@ -111,6 +110,84 @@ func TestFilter(t *testing.T) {
 	}
 	filtered := Filter(entries, entries[1].Time, entries[8].Time)
 	RequireEntrySliceEqual(t, entries[1:9], filtered)
+}
+
+func TestDurationMaps(t *testing.T) {
+	type Test struct {
+		Name          string
+		Times         []string
+		Categories    []string
+		Cutoff        string
+		ExpectedMap   map[string]string
+		ExpectedTotal time.Duration
+	}
+
+	tests := []Test{
+		{
+			Name: `basic example works`,
+			Times: []string{
+				`2025-01-01 08:00:00`,
+			},
+			Categories: []string{
+				`test/a`,
+			},
+			Cutoff: `2025-01-01 08:30:00`,
+			ExpectedMap: map[string]string{
+				`test/a`: `30m0s`,
+			},
+			ExpectedTotal: 30 * time.Minute,
+		},
+		{
+			Name: `complex example works`,
+			Times: []string{
+				`2025-01-01 08:00:00`,
+				`2025-01-01 09:00:00`,
+				`2025-01-01 09:30:00`,
+				`2025-01-01 11:30:00`,
+			},
+			Categories: []string{
+				`test/a`,
+				`test/b`,
+				`test/c`,
+				`test/d`,
+			},
+			Cutoff: `2025-01-01 12:30:00`,
+			ExpectedMap: map[string]string{
+				`test/a`: `1h0m0s`,
+				`test/b`: `30m0s`,
+				`test/c`: `2h0m0s`,
+				`test/d`: `1h0m0s`,
+			},
+			ExpectedTotal: time.Hour + (30 * time.Minute) + (2 * time.Hour) + time.Hour,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			require := require.New(t)
+			entries := []Entry{}
+			require.Equal(len(test.Times), len(test.Categories))
+			for i, strTime := range test.Times {
+				parsed, err := time.Parse(time.DateTime, strTime)
+				require.Nil(err)
+				entry := Entry{
+					Time:     parsed,
+					Category: test.Categories[i],
+				}
+				entries = append(entries, entry)
+			}
+			parsed, err := time.Parse(time.DateTime, test.Cutoff)
+			require.Nil(err)
+			result := DurationMap(entries, parsed)
+			for key, expected := range test.ExpectedMap {
+				unparsed, ok := result[key]
+				require.True(ok)
+				require.Equal(expected, unparsed.String())
+			}
+			require.Equal(test.ExpectedTotal, Total(result))
+		})
+
+	}
 }
 
 func TestCompare(t *testing.T) {

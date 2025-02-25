@@ -3,6 +3,7 @@ package cmd
 import (
 	"io"
 	"os"
+	"time"
 
 	"github.com/alecthomas/kong"
 	"github.com/ohhfishal/gotime/entry"
@@ -20,7 +21,7 @@ type Config struct {
 }
 
 type RootCmd struct {
-	Log    LogCmd    `cmd:"" help:"Manage journal entries"`
+	Log    LogCmd    `default:"withargs" cmd:"" help:"Manage journal entries"`
 	Report ReportCmd `cmd:"" help:"Print summary report"`
 }
 
@@ -62,6 +63,24 @@ func (c Config) LogPath() string {
 
 func (c Config) GetAllEntries() ([]entry.Entry, error) {
 	return file.ReadAllFrom(c.LogPath(), entry.Decode)
+}
+
+func (c Config) Today() (*time.Time, error) {
+	now := time.Now().Format(time.DateOnly)
+	today, err := time.Parse(time.DateOnly, now)
+	if err != nil {
+		return nil, err
+	}
+	return &today, nil
+}
+
+func (c Config) Now() (*time.Time, error) {
+	now := time.Now().Format(time.DateTime)
+	today, err := time.Parse(time.DateTime, now)
+	if err != nil {
+		return nil, err
+	}
+	return &today, nil
 }
 
 func (c Config) GetenvDefault(key, value string) string {

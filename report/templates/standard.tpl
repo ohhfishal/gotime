@@ -8,14 +8,14 @@
   {{- duration .Duration | printf "%-9s   " -}}
   {{- truncRight 40 "..." .Note | printf "%s\n" -}}
 {{- end }}
- Category       Length  
- --------       ------
+ Category                           Length  
+ --------                           ------
 {{range $category, $total := .Categories -}}
-  {{- truncRight 12 "..." $category | printf " %-12s   " -}}
+  {{- truncRight 32 "..." $category | printf " %-32s   " -}}
   {{- duration $total | printf "%-9s" }}
   {{- printf "\n" -}}
 {{- end -}}
-  {{- truncRight 12 "..." "total" | printf " %-12s   " -}}
+  {{- truncRight 32 "..." "total" | printf " %-32s   " -}}
   {{- duration .Total | printf "%-9s" }}
   {{- printf "\n" -}}
 {{- end -}}
