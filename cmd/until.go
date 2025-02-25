@@ -15,6 +15,11 @@ type UntilCmd struct {
 	Template string        `type:"path" help:"Override output using a text/template"`
 }
 
+func Until(cfg Config, args ...string) error {
+	var cmd UntilCmd
+	return RunCmd(cfg, cmd, args...)
+}
+
 func (cmd *UntilCmd) Run(cfg Config) error {
 	entries, err := cfg.GetAllEntries()
 	if err != nil {
@@ -43,16 +48,11 @@ func (cmd *UntilCmd) Run(cfg Config) error {
 		return fmt.Errorf(`unknown category: ""%s`, cmd.Category)
 	}
 
-  if err := report.ReportUntil(cfg.Stdout, cmd.Template, report.UntilConfig{
-    Current: total, 
-    Total: cmd.Duration,
-  }); err != nil {
-    return fmt.Errorf(`printing report: %w`, err)
-  }
+	if err := report.ReportUntil(cfg.Stdout, cmd.Template, report.UntilConfig{
+		Current: total,
+		Total:   cmd.Duration,
+	}); err != nil {
+		return fmt.Errorf(`printing report: %w`, err)
+	}
 	return nil
-}
-
-func Until(cfg Config, args ...string) error {
-	var cmd UntilCmd
-	return RunCmd(cfg, cmd, args...)
 }

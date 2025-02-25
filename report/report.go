@@ -101,21 +101,21 @@ func annotate(entries []entry.Entry) (*Metadata, error) {
 }
 
 type UntilConfig struct {
-  Current time.Duration
-  Total time.Duration
-  Left time.Duration
-
+	Current time.Duration
+	Total   time.Duration
+	Left    time.Duration
 }
+
 func ReportUntil(stdout io.Writer, templatePath string, config UntilConfig) error {
-  config.Left = config.Total - config.Current
+	config.Left = config.Total - config.Current
 	duration, err := Duration(config.Left)
 	if err != nil {
 		return fmt.Errorf(`parsing until duration: %w`, err)
 	}
 
 	if templatePath == `` {
-    fmt.Fprintln(stdout, duration)
-    return nil
+		fmt.Fprintln(stdout, duration)
+		return nil
 	}
 
 	bytes, err := os.ReadFile(templatePath)
@@ -132,7 +132,7 @@ func ReportUntil(stdout io.Writer, templatePath string, config UntilConfig) erro
 	if err != nil {
 		return fmt.Errorf("printing template: %w", err)
 	}
-  return nil
+	return nil
 }
 
 func Report(config Config, originals []entry.Entry) error {
