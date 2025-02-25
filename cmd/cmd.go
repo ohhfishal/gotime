@@ -21,7 +21,7 @@ type Config struct {
 }
 
 type RootCmd struct {
-	Log    LogCmd    `cmd:"" help:"Manage journal entries"`
+	Log    LogCmd    `default:"withargs" cmd:"" help:"Manage journal entries"`
 	Report ReportCmd `cmd:"" help:"Print summary report"`
 }
 
