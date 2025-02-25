@@ -15,6 +15,14 @@ type UntilCmd struct {
 	Template string        `type:"path" help:"Override output using a text/template"`
 }
 
+// TODO: Use an interface instead!
+// type Config interface {
+//   GetAllEntries() ([]entry.Entry, error)
+//   Today() (time.Time, error)
+//   Now() (time.Time, error)
+//   Stdout() io.Writer
+// }
+
 func Until(cfg Config, args ...string) error {
 	var cmd UntilCmd
 	return RunCmd(cfg, cmd, args...)
