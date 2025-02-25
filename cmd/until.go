@@ -43,9 +43,12 @@ func (cmd *UntilCmd) Run(cfg Config) error {
 		return fmt.Errorf(`unknown category: ""%s`, cmd.Category)
 	}
 
-	// TODO: Parse the template into a string
-	report.ReportUntil(cfg.Stdout, cmd.Template, total, cmd.Duration)
-
+  if err := report.ReportUntil(cfg.Stdout, cmd.Template, report.UntilConfig{
+    Current: total, 
+    Total: cmd.Duration,
+  }); err != nil {
+    return fmt.Errorf(`printing report: %w`, err)
+  }
 	return nil
 }
 
