@@ -7,6 +7,7 @@
 - `log until` command
 ### Changed
 - `report` standard formatting spacing
+- `log` to be the default command
 
 ## [v0.3.1] - 2025-02-14
 
