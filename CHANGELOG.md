@@ -5,6 +5,7 @@
 ## [Upcoming]
 ### Added
 - `log until` command
+- `cont` alias for `log continue`
 ### Changed
 - `report` standard formatting spacing
 - `log` to be the default command

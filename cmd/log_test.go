@@ -79,6 +79,37 @@ func TestLog(t *testing.T) {
 			},
 		},
 		{
+			Name: "cont/valid input/valid file",
+			Args: []string{"cont", "current"},
+			LogState: []entry.Entry{
+				{Time: now, Category: "current", Note: "First"},
+				{Time: now, Category: "current", Note: "Original"},
+				{Time: now, Category: "junk", Note: "Bad Note"},
+			},
+			Expected: Expected{
+				Entry: entry.Entry{
+					Time: now, Category: "current", Note: "Cont: Original",
+				},
+			},
+		},
+		{
+			Name: "cont/empty file",
+			Args: []string{"cont", "category"},
+			Expected: Expected{
+				Err: ErrCategoryNotFound,
+			},
+		},
+		{
+			Name: "cont/missing",
+			Args: []string{"cont", "category"},
+			LogState: []entry.Entry{
+				{Time: now, Category: "junk", Note: "Bad Note"},
+			},
+			Expected: Expected{
+				Err: ErrCategoryNotFound,
+			},
+		},
+		{
 			Name: "continue/valid input/valid file",
 			Args: []string{"continue", "current"},
 			LogState: []entry.Entry{
