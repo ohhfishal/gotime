@@ -36,8 +36,3 @@ func (cmd *ReportCmd) Run(cfg Config) error {
 		Template: cmd.Template,
 	}, filtered)
 }
-
-func Report(cfg Config, args ...string) error {
-	var cmd ReportCmd
-	return RunCmd(cfg, &cmd, args...)
-}

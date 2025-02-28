@@ -1,6 +1,7 @@
 package resume
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/ohhfishal/gotime/entry"
@@ -11,20 +12,29 @@ type CMD struct {
 }
 
 type EntrySet interface {
-	LastOf(string) (entry.Entry, error)
+	GetAll() ([]entry.Entry, error)
 	Append(entry.Entry) error
 }
 
-type Clock interface {
-	Now() time.Time
-}
-
-func (cmd *CMD) Run(entries EntrySet, clock Clock) error {
-	entry, err := entries.LastOf(cmd.Category)
+func (cmd *CMD) Run(entrySet EntrySet, now func() time.Time) error {
+	entries, err := entrySet.GetAll()
 	if err != nil {
-		return err
+		return fmt.Errorf(`reading entries: %w`, err)
 	}
-	entry.Note = "Cont: " + entry.Note
-	entry.Time = clock.Now()
-	return entries.Append(entry)
+
+	var matches []entry.Entry
+	for _, entry := range entries {
+		if entry.Category == cmd.Category {
+			matches = append(matches, entry)
+		}
+	}
+
+	if len(matches) == 0 {
+		return fmt.Errorf(`no entry matches category: "%s"`, cmd.Category)
+	}
+
+	last := matches[len(matches)-1]
+	last.Note = "Cont: " + last.Note
+	last.Time = now()
+	return entrySet.Append(last)
 }

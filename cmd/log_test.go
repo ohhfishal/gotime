@@ -3,14 +3,11 @@ package cmd
 import (
 	"errors"
 	"testing"
-	"time"
 
 	"github.com/ohhfishal/gotime/entry"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-var now = time.Now()
 
 func TestLog(t *testing.T) {
 	type Expected struct {
@@ -76,68 +73,6 @@ func TestLog(t *testing.T) {
 			Args: []string{"append", "Cool", "note"},
 			Expected: Expected{
 				Err: ErrFileEmpty,
-			},
-		},
-		{
-			Name: "cont/valid input/valid file",
-			Args: []string{"cont", "current"},
-			LogState: []entry.Entry{
-				{Time: now, Category: "current", Note: "First"},
-				{Time: now, Category: "current", Note: "Original"},
-				{Time: now, Category: "junk", Note: "Bad Note"},
-			},
-			Expected: Expected{
-				Entry: entry.Entry{
-					Time: now, Category: "current", Note: "Cont: Original",
-				},
-			},
-		},
-		{
-			Name: "cont/empty file",
-			Args: []string{"cont", "category"},
-			Expected: Expected{
-				Err: ErrCategoryNotFound,
-			},
-		},
-		{
-			Name: "cont/missing",
-			Args: []string{"cont", "category"},
-			LogState: []entry.Entry{
-				{Time: now, Category: "junk", Note: "Bad Note"},
-			},
-			Expected: Expected{
-				Err: ErrCategoryNotFound,
-			},
-		},
-		{
-			Name: "continue/valid input/valid file",
-			Args: []string{"continue", "current"},
-			LogState: []entry.Entry{
-				{Time: now, Category: "current", Note: "First"},
-				{Time: now, Category: "current", Note: "Original"},
-				{Time: now, Category: "junk", Note: "Bad Note"},
-			},
-			Expected: Expected{
-				Entry: entry.Entry{
-					Time: now, Category: "current", Note: "Cont: Original",
-				},
-			},
-		},
-		{
-			Name: "continue/empty file",
-			Args: []string{"continue", "category"},
-			Expected: Expected{
-				Err: ErrCategoryNotFound,
-			},
-		},
-		{
-			Name: "continue/missing",
-			Args: []string{"continue", "category"},
-			LogState: []entry.Entry{
-				{Time: now, Category: "junk", Note: "Bad Note"},
-			},
-			Expected: Expected{
-				Err: ErrCategoryNotFound,
 			},
 		},
 		{
