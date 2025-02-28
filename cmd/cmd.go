@@ -8,6 +8,7 @@ import (
 	"github.com/alecthomas/kong"
 	"github.com/ohhfishal/gotime/entry"
 	"github.com/ohhfishal/gotime/file"
+	"github.com/ohhfishal/gotime/cmd/resume"
 )
 
 const DefaultLogPath = "$HOME/.config/gotime.log"
@@ -23,6 +24,7 @@ type Config struct {
 type RootCmd struct {
 	Log    LogCmd    `default:"withargs" cmd:"" help:"Manage journal entries"`
 	Report ReportCmd `cmd:"" help:"Print summary report"`
+  Resume resume.CMD `cmd:"" help:"Resume given category in log"`
 }
 
 func Run(args []string, config ...Config) error {
