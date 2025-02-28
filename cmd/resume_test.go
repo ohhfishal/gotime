@@ -1,4 +1,4 @@
-package resume
+package cmd
 
 import (
 	"errors"
@@ -7,18 +7,12 @@ import (
 
 	"github.com/ohhfishal/gotime/entry"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var Error = errors.New("Test Error")
-var now = time.Now()
 
 func Now() time.Time { return now }
-
-var FullLog = []entry.Entry{
-	{Time: now, Category: "First", Note: "First"},
-	{Time: now, Category: "Second", Note: "Second"},
-	{Time: now, Category: "Third", Note: "Third"},
-}
 
 type Mock struct {
 	Entries   []entry.Entry
@@ -26,31 +20,80 @@ type Mock struct {
 	AppendErr error
 }
 
+func TestResume(t *testing.T) {
+	aliases := []string{"resume", "continue", "cont"}
+	entries := FullLog
+	for _, alias := range aliases {
+		for _, e := range entries {
+			testResumeValidArgs(t, alias, e)
+
+			t.Run(alias+"/no args", func(t *testing.T) {
+				tc := NewTestConfig(t)
+				config := tc.Config()
+				err := Run([]string{alias}, config)
+				require.NotNil(t, err)
+			})
+		}
+	}
+}
+
+func testResumeValidArgs(t *testing.T, alias string, match entry.Entry) {
+	args := []string{alias, match.Category}
+	tests := []Test{
+		{
+			Name:     "valid input/valid file",
+			LogState: FullLog,
+			Expected: Expected{
+				Entry: entry.Entry{
+					Time: now, Category: match.Category, Note: "Cont: " + match.Note,
+				},
+			},
+		},
+		{
+			Name:     "empty file",
+			LogState: EmptyLog,
+			Expected: Expected{
+				Err: assert.AnError,
+			},
+		},
+		{
+			Name: "missing file",
+			Expected: Expected{
+				Err: assert.AnError,
+			},
+		},
+	}
+	for _, test := range tests {
+		test.Args = args
+		testCmd(t, test)
+	}
+}
+
 func TestResumeErr(t *testing.T) {
-	ValidCMD := CMD{
+	ValidResume := Resume{
 		Category: "First",
 	}
 
 	tests := []struct {
-		Name string
-		CMD  CMD
-		Mock Mock
+		Name   string
+		Resume Resume
+		Mock   Mock
 	}{
 		{
-			Name: "empty",
-			CMD:  ValidCMD,
+			Name:   "empty",
+			Resume: ValidResume,
 		},
 		{
-			Name: "GetAll error",
-			CMD:  ValidCMD,
+			Name:   "GetAll error",
+			Resume: ValidResume,
 			Mock: Mock{
 				Entries:   FullLog,
 				GetAllErr: Error,
 			},
 		},
 		{
-			Name: "Append error",
-			CMD:  ValidCMD,
+			Name:   "Append error",
+			Resume: ValidResume,
 			Mock: Mock{
 				Entries:   FullLog,
 				AppendErr: Error,
@@ -61,7 +104,7 @@ func TestResumeErr(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			assert := assert.New(t)
 			entries := test.Mock.Entries
-			err := test.CMD.Run(&test.Mock, Now)
+			err := test.Resume.Run(&test.Mock, Now)
 			assert.NotNil(err)
 			// Ensure nothing changed
 			assert.Equal(entries, test.Mock.Entries)
@@ -80,7 +123,7 @@ func TestResumeHappyPath(t *testing.T) {
 			expected := entry
 			expected.Note = "Cont: " + entry.Note
 
-			cmd := CMD{
+			cmd := Resume{
 				Category: entry.Category,
 			}
 			err := cmd.Run(&mock, Now)

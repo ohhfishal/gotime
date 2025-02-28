@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"slices"
 	"time"
 
@@ -15,9 +16,9 @@ type ReportCmd struct {
 	Template string        `optional:"" type:"existingfile" help:"text/template to use in making report"`
 }
 
-func (cmd *ReportCmd) Run(cfg Config) error {
+func (cmd *ReportCmd) Run(stdout io.Writer, entrySet EntrySet, now func() time.Time) error {
 	// Resolve when to start and end
-	today, err := cfg.Today()
+	today, err := Today(now())
 	if err != nil {
 		return fmt.Errorf("parsing today: %w", err)
 	}
@@ -25,14 +26,15 @@ func (cmd *ReportCmd) Run(cfg Config) error {
 	start := today.Add(-cmd.Back)
 	end := today.Add(cmd.Forward)
 
-	entries, err := cfg.GetAllEntries()
+	entries, err := entrySet.GetAll()
 	if err != nil {
 		return fmt.Errorf(`reading entries: %w`, err)
 	}
+
 	filtered := entry.Filter(entries, start, end)
 	slices.SortFunc(filtered, entry.Compare)
 	return report.Report(report.Config{
-		Stdout:   cfg.Stdout,
+		Stdout:   stdout,
 		Template: cmd.Template,
 	}, filtered)
 }

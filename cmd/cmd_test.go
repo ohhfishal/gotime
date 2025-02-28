@@ -15,98 +15,12 @@ import (
 
 var now = time.Now()
 var FullLog = []entry.Entry{
-	{Time: now, Category: "category", Note: "First"},
-	{Time: now, Category: "category", Note: "Original"},
-	{Time: now, Category: "junk", Note: "Bad Note"},
+	{Time: now, Category: "First", Note: "First"},
+	{Time: now, Category: "Second", Note: "Second"},
+	{Time: now, Category: "Third", Note: "Third"},
 }
 
 var EmptyLog = []entry.Entry{}
-
-func TestResume(t *testing.T) {
-	aliases := []string{"resume", "continue", "cont"}
-	for _, alias := range aliases {
-		testResumeValidArgs(t, alias)
-	}
-}
-
-func testResumeValidArgs(t *testing.T, alias string) {
-	args := []string{alias, "category"}
-	type Expected struct {
-		Entry  entry.Entry
-		Err    error
-		Stdout string
-		Stderr string
-	}
-	tests := []struct {
-		Name     string
-		Args     []string
-		Envs     map[string]string
-		LogState []entry.Entry
-		Expected Expected
-	}{
-		{
-			Name:     "valid input/valid file",
-			LogState: FullLog,
-			Expected: Expected{
-				Entry: entry.Entry{
-					Time: now, Category: "category", Note: "Cont: Original",
-				},
-			},
-		},
-		{
-			Name:     "empty file",
-			LogState: EmptyLog,
-			Expected: Expected{
-				Err: ErrCategoryNotFound,
-			},
-		},
-		{
-			Name: "missing file",
-			Expected: Expected{
-				Err: ErrCategoryNotFound,
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(alias+":"+test.Name, func(t *testing.T) {
-			tc := NewTestConfig(t).
-				WithEnvs(test.Envs).
-				WithLogFile(test.LogState)
-			config := tc.Config()
-
-			if test.Args != nil {
-				args = test.Args
-			}
-			err := Run(args, config)
-
-			require := require.New(t)
-			if errors.Is(test.Expected.Err, assert.AnError) {
-				require.Error(err)
-				return
-			}
-			if test.Expected.Err != nil {
-				require.NotNil(err)
-				return
-			}
-
-			require.Nil(err)
-			assert.Equal(t, test.Expected.Stdout, tc.Stdout())
-			assert.Equal(t, test.Expected.Stderr, tc.Stderr())
-
-			entries, err := config.GetAllEntries()
-			require.Nil(err)
-			if len(entries) != 0 {
-				entries = entries[:len(entries)-1]
-			}
-			AssertEqualSlice(t, test.LogState, entries)
-
-			last, err := config.LastEntry()
-			require.Nil(err)
-			AssertEqual(t, test.Expected.Entry, *last)
-
-		})
-	}
-}
 
 func AssertEqualSlice(t *testing.T, expected, actual []entry.Entry) {
 	t.Helper()
@@ -200,5 +114,130 @@ func newFile(t *testing.T, entries []entry.Entry) string {
 	return writer.Name()
 }
 
-func TestCommand(t *testing.T) {
+type Expected struct {
+	Entry  entry.Entry
+	Err    error
+	Stdout string
+	Stderr string
+}
+
+type Test struct {
+	Name string
+	Args []string
+	// GOTIME_LOG is set **always** to contain LogState
+	Envs     map[string]string
+	LogState []entry.Entry
+	Expected Expected
+}
+
+func testCmd(t *testing.T, test Test) {
+	t.Run(test.Name, func(t *testing.T) {
+		tc := NewTestConfig(t).
+			WithEnvs(test.Envs).
+			WithLogFile(test.LogState)
+		config := tc.Config()
+
+		err := Run(test.Args, config)
+
+		require := require.New(t)
+		if errors.Is(test.Expected.Err, assert.AnError) {
+			require.Error(err)
+			return
+		} else if test.Expected.Err != nil {
+			require.ErrorIs(err, test.Expected.Err)
+			return
+		}
+
+		require.Nil(err)
+		assert.Equal(t, test.Expected.Stdout, tc.Stdout())
+		assert.Equal(t, test.Expected.Stderr, tc.Stderr())
+
+		entries, err := config.GetAll()
+		require.Nil(err)
+		if len(entries) != 0 {
+			entries = entries[:len(entries)-1]
+		}
+		AssertEqualSlice(t, test.LogState, entries)
+	})
+}
+
+func TestCmds(t *testing.T) {
+	tests := []Test{
+		{
+			Name: "default/valid input/empty file",
+			Args: []string{"happy", "Cool", "note"},
+			Expected: Expected{
+				Entry: entry.Entry{Category: "happy", Note: "Cool note"},
+			},
+		},
+		{
+			Name: "default/valid input/existing file",
+			Args: []string{"second", "Note"},
+			LogState: []entry.Entry{
+				{Time: now, Category: "first", Note: "Should remain unchanged"},
+			},
+			Expected: Expected{
+				Entry: entry.Entry{Category: "second", Note: "Note"},
+			},
+		},
+		{
+			Name: "log/valid input/empty file",
+			Args: []string{"log", "happy", "Cool", "note"},
+			Expected: Expected{
+				Entry: entry.Entry{Category: "happy", Note: "Cool note"},
+			},
+		},
+		{
+			Name: "log/valid input/existing file",
+			Args: []string{"log", "second", "Note"},
+			LogState: []entry.Entry{
+				{Time: now, Category: "first", Note: "Should remain unchanged"},
+			},
+			Expected: Expected{
+				Entry: entry.Entry{Category: "second", Note: "Note"},
+			},
+		},
+		{
+			Name: "append/valid input/valid file",
+			Args: []string{"append", "Cool", "note"},
+			LogState: []entry.Entry{
+				{Time: now, Category: "current", Note: "Should remain unchanged"},
+			},
+			Expected: Expected{
+				Entry: entry.Entry{Category: "current", Note: "Cool note"},
+			},
+		},
+		{
+			Name: "append/empty file",
+			Args: []string{"append", "Cool", "note"},
+			Expected: Expected{
+				Err: ErrFileEmpty,
+			},
+		},
+		{
+			Name: "help/short",
+			Args: []string{"-h"},
+			Expected: Expected{
+				Err: assert.AnError,
+			},
+		},
+		{
+			Name: "help/long",
+			Args: []string{"--help"},
+			Expected: Expected{
+				Err: assert.AnError,
+			},
+		},
+		{
+			Name: "bad flag",
+			Args: []string{"--badflag123"},
+			Expected: Expected{
+				Err: assert.AnError,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		testCmd(t, test)
+	}
 }

@@ -1,22 +1,20 @@
-package resume
+package cmd
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/ohhfishal/gotime/entry"
 )
 
-type CMD struct {
+var ErrCategoryNotFound = errors.New("category not found")
+
+type Resume struct {
 	Category string `arg: "" required: ""`
 }
 
-type EntrySet interface {
-	GetAll() ([]entry.Entry, error)
-	Append(entry.Entry) error
-}
-
-func (cmd *CMD) Run(entrySet EntrySet, now func() time.Time) error {
+func (cmd *Resume) Run(entrySet EntrySet, now func() time.Time) error {
 	entries, err := entrySet.GetAll()
 	if err != nil {
 		return fmt.Errorf(`reading entries: %w`, err)
@@ -30,7 +28,7 @@ func (cmd *CMD) Run(entrySet EntrySet, now func() time.Time) error {
 	}
 
 	if len(matches) == 0 {
-		return fmt.Errorf(`no entry matches category: "%s"`, cmd.Category)
+		return fmt.Errorf(`%w: "%s"`, ErrCategoryNotFound, cmd.Category)
 	}
 
 	last := matches[len(matches)-1]

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/ohhfishal/gotime/entry"
@@ -15,52 +16,61 @@ type UntilCmd struct {
 	Template string        `type:"path" help:"Override output using a text/template"`
 }
 
-// TODO: Use an interface instead!
-// type Config interface {
-//   GetAllEntries() ([]entry.Entry, error)
-//   Today() (time.Time, error)
-//   Now() (time.Time, error)
-//   Stdout() io.Writer
-// }
-
-func Until(cfg Config, args ...string) error {
-	var cmd UntilCmd
-	return RunCmd(cfg, cmd, args...)
-}
-
-func (cmd *UntilCmd) Run(cfg Config) error {
-	entries, err := cfg.GetAllEntries()
+func (cmd *UntilCmd) Run(stdout io.Writer, entrySet EntrySet, nowFunc func() time.Time) error {
+	entries, err := entrySet.GetAll()
 	if err != nil {
 		return fmt.Errorf(`reading entries: %w`, err)
 	}
 
-	today, err := cfg.Today()
+	now, err := Standardize(nowFunc())
+	if err != nil {
+		return fmt.Errorf("parsing now: %w", err)
+	}
+
+	today, err := Today(now)
 	if err != nil {
 		return fmt.Errorf("parsing today: %w", err)
 	}
 
-	now, err := cfg.Now()
-	if err != nil {
-		return fmt.Errorf("parsing current time: %w", err)
-	}
-
-	filtered := entry.Filter(entries, *today, *now)
-	durations := entry.DurationMap(filtered, *now)
+	filtered := entry.Filter(entries, today, now)
+	durations := entry.DurationMap(filtered, now)
 	for _, exclude := range cmd.Exclude {
 		delete(durations, exclude)
 	}
 
+	fmt.Println(entries)
+	fmt.Println(durations)
 	durations[`total`] = entry.Total(durations)
 	total, ok := durations[cmd.Category]
 	if !ok {
 		return fmt.Errorf(`unknown category: ""%s`, cmd.Category)
 	}
 
-	if err := report.ReportUntil(cfg.Stdout, cmd.Template, report.UntilConfig{
+	fmt.Println(total, now, cmd.Duration)
+	if err := report.ReportUntil(stdout, cmd.Template, report.UntilConfig{
 		Current: total,
 		Total:   cmd.Duration,
 	}); err != nil {
 		return fmt.Errorf(`printing report: %w`, err)
 	}
 	return nil
+}
+
+func Standardize(timestamp time.Time) (time.Time, error) {
+	now := timestamp.Format(time.DateTime)
+	today, err := time.Parse(time.DateTime, now)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return today, nil
+}
+
+// TODO: May be shared by other code
+func Today(timestamp time.Time) (time.Time, error) {
+	now := timestamp.Format(time.DateOnly)
+	today, err := time.Parse(time.DateOnly, now)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return today, nil
 }

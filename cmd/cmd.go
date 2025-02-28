@@ -1,21 +1,16 @@
 package cmd
 
 import (
-	"errors"
-	"fmt"
 	"io"
 	"os"
 	"time"
 
 	"github.com/alecthomas/kong"
-	"github.com/ohhfishal/gotime/cmd/resume"
 	"github.com/ohhfishal/gotime/entry"
 	"github.com/ohhfishal/gotime/file"
 )
 
 const DefaultLogPath = "$HOME/.config/gotime.log"
-
-var ErrCategoryNotFound = errors.New("category not found")
 
 // TODO: Make GetAllEntries and OpenWriter/Reader testable
 type Config struct {
@@ -25,10 +20,17 @@ type Config struct {
 	Getenv func(string) string
 }
 
+type EntrySet interface {
+	GetAll() ([]entry.Entry, error)
+	Append(entry.Entry) error
+}
+
 type RootCmd struct {
-	Log    LogCmd     `default:"withargs" cmd:"" help:"Manage journal entries"`
-	Report ReportCmd  `cmd:"" help:"Print summary report"`
-	Resume resume.CMD `cmd:"" aliases:"continue,cont" help:"Log an entry that continues the last entry of <category>."`
+	Log    LogCmd    `default:"withargs" cmd: "" help:"Log using a custom category and note."`
+	Append AppendCmd `cmd: "" help:"Log using the last category in the log."`
+	Resume Resume    `cmd:"" aliases:"continue,cont" help:"Log an entry that continues the last entry of <category>."`
+	Report ReportCmd `cmd:"" help:"Print summary report"`
+	Until  UntilCmd  `cmd: "" help:"How long until a certain amount of time is logged."`
 }
 
 func Run(args []string, config ...Config) error {
@@ -41,32 +43,8 @@ func Run(args []string, config ...Config) error {
 		kong.Exit(func(_ int) { exit = true }),
 		kong.Bind(cfg),
 		kong.Bind(time.Now),
-		kong.BindTo(cfg, (*resume.EntrySet)(nil)),
-	)
-	if err != nil {
-		return err
-	}
-	parser.Stdout = cfg.Stdout
-	parser.Stderr = cfg.Stderr
-
-	context, err := parser.Parse(args)
-	if err != nil || exit {
-		return err
-	}
-
-	err = context.Run()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func RunCmd(cfg Config, cmd any, args ...string) error {
-	var exit bool
-	parser, err := kong.New(
-		cmd,
-		kong.Exit(func(_ int) { exit = true }),
-		kong.Bind(cfg),
+		kong.BindTo(cfg.Stdout, (*io.Writer)(nil)),
+		kong.BindTo(cfg, (*EntrySet)(nil)),
 	)
 	if err != nil {
 		return err
@@ -91,20 +69,11 @@ func (c Config) LogPath() string {
 	return os.Expand(unexpanded, c.Getenv)
 }
 
-func (c Config) GetAllEntries() ([]entry.Entry, error) {
+func (c Config) GetAll() ([]entry.Entry, error) {
 	return file.ReadAllFrom(c.LogPath(), entry.Decode)
 }
 
-func (c Config) GetAll() ([]entry.Entry, error) {
-	return c.GetAllEntries()
-}
-
-func (c Config) Append(e entry.Entry) error {
-	return c.WriteToLog(e)
-
-}
-
-func (c Config) WriteToLog(newEntry entry.Entry) error {
+func (c Config) Append(newEntry entry.Entry) error {
 	return file.WriteTo(c.LogPath(), c.FilePerms(), newEntry)
 }
 
@@ -142,18 +111,6 @@ func DefaultConfig(config ...Config) Config {
 		return sanitizeConfig(config[0])
 	}
 	return sanitizeConfig(Config{})
-}
-
-func (c Config) LastEntry() (*entry.Entry, error) {
-	entries, err := c.GetAllEntries()
-	if err != nil {
-		return nil, fmt.Errorf(`reading entries: %w`, err)
-	}
-
-	if len(entries) == 0 {
-		return nil, ErrFileEmpty
-	}
-	return &entries[len(entries)-1], nil
 }
 
 func sanitizeConfig(cfg Config) Config {
