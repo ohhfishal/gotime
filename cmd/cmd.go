@@ -20,23 +20,31 @@ type Config struct {
 	Getenv func(string) string
 }
 
+type EntrySet interface {
+	GetAll() ([]entry.Entry, error)
+	Append(entry.Entry) error
+}
+
 type RootCmd struct {
-	Log    LogCmd    `default:"withargs" cmd:"" help:"Manage journal entries"`
+	Log    LogCmd    `default:"withargs" cmd: "" help:"Log using a custom category and note."`
+	Append AppendCmd `cmd: "" help:"Log using the last category in the log."`
+	Resume Resume    `cmd:"" aliases:"continue,cont" help:"Log an entry that continues the last entry of <category>."`
 	Report ReportCmd `cmd:"" help:"Print summary report"`
+	Until  UntilCmd  `cmd: "" help:"How long until a certain amount of time is logged."`
 }
 
 func Run(args []string, config ...Config) error {
 	cfg := DefaultConfig(config...)
-	var cmd RootCmd
-	return RunCmd(cfg, &cmd, args...)
-}
+	cmd := &RootCmd{}
 
-func RunCmd(cfg Config, cmd any, args ...string) error {
 	var exit bool
 	parser, err := kong.New(
 		cmd,
 		kong.Exit(func(_ int) { exit = true }),
 		kong.Bind(cfg),
+		kong.Bind(time.Now),
+		kong.BindTo(cfg.Stdout, (*io.Writer)(nil)),
+		kong.BindTo(cfg, (*EntrySet)(nil)),
 	)
 	if err != nil {
 		return err
@@ -61,8 +69,12 @@ func (c Config) LogPath() string {
 	return os.Expand(unexpanded, c.Getenv)
 }
 
-func (c Config) GetAllEntries() ([]entry.Entry, error) {
+func (c Config) GetAll() ([]entry.Entry, error) {
 	return file.ReadAllFrom(c.LogPath(), entry.Decode)
+}
+
+func (c Config) Append(newEntry entry.Entry) error {
+	return file.WriteTo(c.LogPath(), c.FilePerms(), newEntry)
 }
 
 func (c Config) Today() (*time.Time, error) {

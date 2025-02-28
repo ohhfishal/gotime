@@ -3,11 +3,16 @@
 # Change Log
  
 ## [Upcoming]
+
+## [v0.4.0] - 2025-02-28
+
 ### Added
-- `log until` command
+- `until` command
+
 ### Changed
 - `report` standard formatting spacing
 - `log` to be the default command
+- Flattened command tree
 
 ## [v0.3.1] - 2025-02-14
 
@@ -41,7 +46,8 @@
  
 - Initial release
  
-[upcoming]: https://github.com/ohhfishal/gotime/compare/v0.3.1...HEAD
+[upcoming]: https://github.com/ohhfishal/gotime/compare/v0.4.0...HEAD
+[v0.4.0]: https://github.com/ohhfishal/gotime/releases/tag/v0.4.0
 [v0.3.1]: https://github.com/ohhfishal/gotime/releases/tag/v0.3.1
 [v0.3.0]: https://github.com/ohhfishal/gotime/releases/tag/v0.3.0
 [v0.2.0]: https://github.com/ohhfishal/gotime/releases/tag/v0.2.0

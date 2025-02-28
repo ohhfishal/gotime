@@ -20,8 +20,8 @@ If the following were run throughout the day:
 ```
 ./gotime log project Working on Bug
 ./gotime log out/lunch
-./gotime log continue project
-./gotime log append Meeting
+./gotime continue project
+./gotime append Meeting
 ./gotime log out Done for the day
 ./gotime report
 ```

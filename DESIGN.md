@@ -1,32 +1,25 @@
 # Design Document
 
 ## Purpose
-Provide a useful CLI tool for managing ones time.
+Provide a useful CLI tool for managing ones daily work journal.
 
 ## Terms
 - `entry`: A journal entry that describes what was done between a range of time (Ex: I read from 1-2pm).
-- `event`: Describes something that happens at a specific time (Ex: doctor's appointment Friday @3pm).
-` `task`: Something to be done. May have a due date, but can be done any time before (Ex: English homework due tonight).
 
+# V1 Goals
 ## Commands
+- [X] `log`: Create a new entry in your daily log
+- [X] `append`: Log another entry using your current entry.
+- [X] `resume`: Continue using a given category.
+- [X] `report`: Prints out a human-readable report.
 
-### `log`
-Manages a log of journal entries.
+## Improvements
+- [ ] Better docs
+- [ ] Improved `report` functionality 
+  - [ ] More templates (Markdown)
+  - [ ] Condense `until` command to be part of `report`)
+  - [ ] Subcategories `project/task`
 
-#### `new`
 
-#### `append`
-
-#### `continue`
-
-### `schedule`
-Handles events.
-
-### `assign`
-Handles tasks.
-
-### `report`
-Prints out a human-readable report.
-
-### `export`
-Exports data to a standard parseable format (Ex: `json`).
+# Futher Goals (Not required for V1)
+- [ ] `export`: Exports data to a standard format (Ex: `json`).
