@@ -38,15 +38,12 @@ func (cmd *UntilCmd) Run(stdout io.Writer, entrySet EntrySet, nowFunc func() tim
 		delete(durations, exclude)
 	}
 
-	fmt.Println(entries)
-	fmt.Println(durations)
 	durations[`total`] = entry.Total(durations)
 	total, ok := durations[cmd.Category]
 	if !ok {
 		return fmt.Errorf(`unknown category: ""%s`, cmd.Category)
 	}
 
-	fmt.Println(total, now, cmd.Duration)
 	if err := report.ReportUntil(stdout, cmd.Template, report.UntilConfig{
 		Current: total,
 		Total:   cmd.Duration,
