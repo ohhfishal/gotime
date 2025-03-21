@@ -3,6 +3,8 @@
 # Change Log
  
 ## [Upcoming]
+### Added
+- `offset` flag to `log` command
 
 ## [v0.4.0] - 2025-02-28
 
