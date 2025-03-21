@@ -10,10 +10,10 @@ import (
 )
 
 type UntilCmd struct {
-	Duration time.Duration `arg: "" required: ""`
+	Duration time.Duration `arg:"" required:""`
 	Exclude  []string      `default:"out" help:"Categories to exclude from total"`
 	Category string        `default:"total" help:"Category to check against duration"`
-	Template string        `type:"path" help:"Override output using a text/template"`
+	Template string        `type:"existingfile" placeholder:"PATH" help:"Override output using a text/template"`
 }
 
 func (cmd *UntilCmd) Run(stdout io.Writer, entrySet EntrySet, nowFunc func() time.Time) error {
