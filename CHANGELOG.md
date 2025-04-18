@@ -2,7 +2,7 @@
 
 # Change Log
  
-## [v0.5.0] - 2025--04-18
+## [v0.5.0] - 2025-04-18
 ### Added
 - `offset` flag to `log` command
 
