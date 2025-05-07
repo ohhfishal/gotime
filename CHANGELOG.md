@@ -2,9 +2,9 @@
 
 # Change Log
  
-## [v0.5.0] - 2025-04-18
-### Added
-- `offset` flag to `log` command
+## [v0.5.0] - 2025-05-07
+### Changed
+- `log` to allow arbitrary log times
 
 ## [v0.4.0] - 2025-02-28
 
