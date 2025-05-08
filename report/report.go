@@ -37,24 +37,6 @@ type Metadata struct {
 	Total      time.Duration
 }
 
-func (config Config) getTemplate() (string, error) {
-	// TODO: Remove this and just read the path from the args
-	// Check for default templates
-	tmpl, ok := defaultTemplates[config.Template]
-	if !ok {
-		return config.loadTemplate(config.Template)
-	}
-	return tmpl, nil
-}
-
-func (config Config) loadTemplate(filename string) (string, error) {
-	bytes, err := os.ReadFile(filename)
-	if err != nil {
-		return ``, fmt.Errorf("reading file: %w", err)
-	}
-	return string(bytes), nil
-}
-
 func deviceNow() time.Time {
 	final, err := time.Parse(time.DateTime, time.Now().Format(time.DateTime))
 	if err != nil {
@@ -135,14 +117,14 @@ func ReportUntil(stdout io.Writer, templatePath string, config UntilConfig) erro
 	return nil
 }
 
-func Report(config Config, originals []entry.Entry) error {
+func Report(stdout io.Writer, templateString string, originals []entry.Entry) error {
 	entries, err := annotate(originals)
 	if err != nil {
 		return fmt.Errorf("formatting entries: %w", err)
 	}
-	templateString, err := config.getTemplate()
-	if err != nil {
-		return fmt.Errorf("loading template: %w", err)
+
+	if templateString == `` {
+		templateString = defaultTemplate
 	}
 
 	tmpl, err := template.New("report-template").Funcs(funcMap).Parse(templateString)
@@ -150,7 +132,7 @@ func Report(config Config, originals []entry.Entry) error {
 		return fmt.Errorf("parsing template: %w", err)
 	}
 
-	err = tmpl.Execute(config.Stdout, entries)
+	err = tmpl.Execute(stdout, entries)
 	if err != nil {
 		return fmt.Errorf("printing template: %w", err)
 	}
