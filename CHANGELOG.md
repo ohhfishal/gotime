@@ -5,6 +5,7 @@
 ## [v0.5.0] - 2025-05-07
 ### Changed
 - `log` to allow arbitrary log times
+- `report` to use dates rather than duration offsets
 
 ## [v0.4.0] - 2025-02-28
 
