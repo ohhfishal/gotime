@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
-	"os"
 	"text/template"
 	"time"
 
@@ -18,10 +17,11 @@ var defaultTemplates = map[string]string{
 	"": defaultTemplate,
 }
 
-type Config struct {
-	Stdout   io.Writer
-	Template string
-}
+// TODO: Add some options!
+// - [ ] Different time formatting? Turn on feature booleans?
+// - [ ] Extra metadata?
+// - [ ] Move the templateString here? WithTemplate(string)
+type ReportOption func(*Metadata) error
 
 type Entry struct {
 	Time     time.Time
@@ -30,21 +30,42 @@ type Entry struct {
 	Duration time.Duration
 }
 
-// TODO: Use this instead of the []Entry
 type Metadata struct {
 	Schedule   []Entry
 	Categories map[string]time.Duration
 	Total      time.Duration
+	funcs      map[string]any
 }
 
-func deviceNow() time.Time {
-	final, err := time.Parse(time.DateTime, time.Now().Format(time.DateTime))
+func Report(stdout io.Writer, templateString string, originals []entry.Entry, options ...ReportOption) error {
+	metadata, err := annotate(originals)
 	if err != nil {
-		// TODO: Consider if we keep this as a panic
-		panic(fmt.Errorf("could not get device time: %w", err))
+		return fmt.Errorf("formatting metadata: %w", err)
 	}
-	return final
 
+	for i, opt := range options {
+		if err := opt(metadata); err != nil {
+			return fmt.Errorf(`applying option %d: %w`, i, err)
+		}
+	}
+
+	if templateString == `` {
+		templateString = defaultTemplate
+	}
+
+	tmpl, err := template.
+		New("report-template").
+		Funcs(metadata.funcs).
+		Parse(templateString)
+	if err != nil {
+		return fmt.Errorf("parsing template: %w", err)
+	}
+
+	err = tmpl.Execute(stdout, metadata)
+	if err != nil {
+		return fmt.Errorf("printing template: %w", err)
+	}
+	return nil
 }
 
 func annotate(entries []entry.Entry) (*Metadata, error) {
@@ -79,62 +100,16 @@ func annotate(entries []entry.Entry) (*Metadata, error) {
 		Categories: totals,
 		Schedule:   schedule,
 		Total:      total,
+		funcs:      defaultFuncMap,
 	}, nil
 }
 
-type UntilConfig struct {
-	Current time.Duration
-	Total   time.Duration
-	Left    time.Duration
-}
-
-func ReportUntil(stdout io.Writer, templatePath string, config UntilConfig) error {
-	config.Left = config.Total - config.Current
-	duration, err := Duration(config.Left)
+// TODO: Should really remove this function
+func deviceNow() time.Time {
+	final, err := time.Parse(time.DateTime, time.Now().Format(time.DateTime))
 	if err != nil {
-		return fmt.Errorf(`parsing until duration: %w`, err)
+		// TODO: Consider if we keep this as a panic
+		panic(fmt.Errorf("could not get device time: %w", err))
 	}
-
-	if templatePath == `` {
-		fmt.Fprintln(stdout, duration)
-		return nil
-	}
-
-	bytes, err := os.ReadFile(templatePath)
-	if err != nil {
-		return fmt.Errorf("reading template file: %w", err)
-	}
-
-	tmpl, err := template.New("report-until-template").Funcs(funcMap).Parse(string(bytes))
-	if err != nil {
-		return fmt.Errorf("parsing template: %w", err)
-	}
-
-	err = tmpl.Execute(stdout, config)
-	if err != nil {
-		return fmt.Errorf("printing template: %w", err)
-	}
-	return nil
-}
-
-func Report(stdout io.Writer, templateString string, originals []entry.Entry) error {
-	entries, err := annotate(originals)
-	if err != nil {
-		return fmt.Errorf("formatting entries: %w", err)
-	}
-
-	if templateString == `` {
-		templateString = defaultTemplate
-	}
-
-	tmpl, err := template.New("report-template").Funcs(funcMap).Parse(templateString)
-	if err != nil {
-		return fmt.Errorf("parsing template: %w", err)
-	}
-
-	err = tmpl.Execute(stdout, entries)
-	if err != nil {
-		return fmt.Errorf("printing template: %w", err)
-	}
-	return nil
+	return final
 }
