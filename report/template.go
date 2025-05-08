@@ -7,7 +7,7 @@ import (
 )
 
 // TODO: Add tests for these
-var funcMap = map[string]any{
+var defaultFuncMap = map[string]any{
 	"time":       Time,
 	"duration":   Duration,
 	"truncRight": TruncRightWith,
