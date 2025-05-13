@@ -2,7 +2,11 @@
 
 # Change Log
  
-## [v0.5.0] - 2025-05-07
+## [v0.5.0] - 2025-05-13
+### Added
+- `report` markdown template
+- `report` duration formatting options
+
 ### Changed
 - `log` to allow arbitrary log times
 - `report` to use dates rather than duration offsets
