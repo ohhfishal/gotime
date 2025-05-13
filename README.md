@@ -52,11 +52,14 @@ The final `gotime report` may produce:
 ## ENV Configuration
 
 
+| Name | Description | Default |
+| ---- | ----------- | ------- |
+| `GOTIME_LOG` | Filepath to log file used to `log` and `report` tasks. | `$HOME/.config/gotime.log` |
+| `DURATION_FORMAT` | Enum that controls the way durations are formatted (default or hour) | `default` |
+
 ### Example
 ```bash
 export GOTIME_LOG="/home/user/.gotime/schedule.log"
+export DURATION_FORMAT="hour"
 ```
 
-| Name | Description | Default | 
-| ---- | ----------- | ------- | 
-| `GOTIME_LOG` | Filepath to log file used to `log` and `report` tasks. | `$HOME/.config/gotime.log` |
