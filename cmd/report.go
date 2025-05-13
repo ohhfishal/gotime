@@ -12,10 +12,13 @@ import (
 )
 
 type ReportCmd struct {
-	Start           time.Time `short:"s" optional:"" format:"2006-01-02" help:"Date to start report from (default: today)"`
-	End             time.Time `short:"t" optional:"" format:"2006-01-02" help:"Date to end report from (default: start + 1d)"`
-	Template        string    `type:"existingfile" help:"file text/template to use in making report"`
-	templateContent string    `kong:"-"`
+	Start          time.Time `short:"s" optional:"" format:"2006-01-02" help:"Date to start report from (default: today)"`
+	End            time.Time `short:"t" optional:"" format:"2006-01-02" help:"Date to end report from (default: start + 1d)"`
+	DurationFormat string    `enum:"default,hour" default:"default" help:"How to format duration in output (values: default,hour)" env:"DURATION_FORMAT"`
+	// TODO: Make this a cleaner API
+	Output          report.OutputFormat `short:"o" enum:"default,markdown" default:"default" help:"Premade formats (default,markdown)"`
+	Template        string              `type:"existingfile" help:"File text/template to use in making report (Overrides --output)"`
+	templateContent string              `kong:"-"`
 }
 
 func (cmd *ReportCmd) Run(stdout io.Writer, entrySet EntrySet) error {
@@ -28,7 +31,9 @@ func (cmd *ReportCmd) Run(stdout io.Writer, entrySet EntrySet) error {
 	slices.SortFunc(filtered, entry.Compare)
 	return report.Report(stdout,
 		cmd.templateContent,
+		cmd.Start,
 		filtered,
+		report.WithDurationFormat(cmd.DurationFormat),
 	)
 }
 
@@ -43,6 +48,10 @@ func (cmd *ReportCmd) AfterApply() error {
 
 	if cmd.End.IsZero() {
 		cmd.End = cmd.Start.Add(24 * time.Hour)
+	}
+
+	if content, err := cmd.Output.Template(); err == nil {
+		cmd.templateContent = content
 	}
 
 	if cmd.Template != `` {
