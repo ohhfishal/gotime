@@ -27,8 +27,6 @@ type EntrySet interface {
 
 type RootCmd struct {
 	Log    LogCmd    `default:"withargs" cmd: "" help:"Log using a custom category and note."`
-	Append AppendCmd `cmd: "" help:"Log using the last category in the log."`
-	Resume Resume    `cmd:"" aliases:"continue,cont" help:"Log an entry that continues the last entry of <category>."`
 	Report ReportCmd `cmd:"" help:"Print summary report"`
 	Until  UntilCmd  `cmd: "" help:"How long until a certain amount of time is logged."`
 }

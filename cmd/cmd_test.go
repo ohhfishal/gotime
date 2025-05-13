@@ -198,23 +198,6 @@ func TestCmds(t *testing.T) {
 			},
 		},
 		{
-			Name: "append/valid input/valid file",
-			Args: []string{"append", "Cool", "note"},
-			LogState: []entry.Entry{
-				{Time: now, Category: "current", Note: "Should remain unchanged"},
-			},
-			Expected: Expected{
-				Entry: entry.Entry{Category: "current", Note: "Cool note"},
-			},
-		},
-		{
-			Name: "append/empty file",
-			Args: []string{"append", "Cool", "note"},
-			Expected: Expected{
-				Err: ErrFileEmpty,
-			},
-		},
-		{
 			Name: "help/short",
 			Args: []string{"-h"},
 			Expected: Expected{
