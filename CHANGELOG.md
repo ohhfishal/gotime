@@ -1,6 +1,12 @@
 
-
 # Change Log
+
+## [Upcoming]
+### Changed
+- `resume` command to now be an option in `log`
+
+### Removed
+- `append` command
  
 ## [v0.5.0] - 2025-05-13
 ### Added
