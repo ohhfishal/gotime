@@ -2,9 +2,14 @@
 
 # Change Log
  
-## [v0.5.0] - 2025-04-18
+## [v0.5.0] - 2025-05-13
 ### Added
-- `offset` flag to `log` command
+- `report` markdown template
+- `report` duration formatting options
+
+### Changed
+- `log` to allow arbitrary log times
+- `report` to use dates rather than duration offsets
 
 ## [v0.4.0] - 2025-02-28
 
