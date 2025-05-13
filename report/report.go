@@ -2,6 +2,7 @@ package report
 
 import (
 	_ "embed"
+	"errors"
 	"fmt"
 	"io"
 	"text/template"
@@ -13,6 +14,34 @@ import (
 //go:embed templates/standard.tpl
 var defaultTemplate string
 
+// TODO: Make this template look good as plain text
+//
+//go:embed templates/markdown.tpl
+var markdownTemplate string
+
+type OutputFormat string
+
+const (
+	OutputFormatDefault  = ""
+	OutputFormatMarkdown = "markdown"
+)
+
+var durationFormats map[string]any = map[string]any{
+	"default": Duration,
+	"hour":    DurationHour,
+}
+
+func (format OutputFormat) Template() (string, error) {
+	switch format {
+	case OutputFormatMarkdown:
+		return markdownTemplate, nil
+	case OutputFormatDefault:
+		fallthrough
+	default:
+		return ``, errors.New(`invalid format`)
+	}
+}
+
 var defaultTemplates = map[string]string{
 	"": defaultTemplate,
 }
@@ -23,11 +52,15 @@ var defaultTemplates = map[string]string{
 // - [ ] Move the templateString here? WithTemplate(string)
 type ReportOption func(*Metadata) error
 
-type Entry struct {
-	Time     time.Time
-	Category string
-	Note     string
-	Duration time.Duration
+func WithDurationFormat(format string) func(*Metadata) error {
+	return func(metadata *Metadata) error {
+		f, ok := durationFormats[format]
+		if !ok {
+			return fmt.Errorf(`invalid duration format: %s`, format)
+		}
+		metadata.funcs["duration"] = f
+		return nil
+	}
 }
 
 type Metadata struct {
@@ -35,13 +68,28 @@ type Metadata struct {
 	Categories map[string]time.Duration
 	Total      time.Duration
 	funcs      map[string]any
+	Time       time.Time
 }
 
-func Report(stdout io.Writer, templateString string, originals []entry.Entry, options ...ReportOption) error {
+type Entry struct {
+	Time     time.Time
+	Category string
+	Note     string
+	Duration time.Duration
+}
+
+func Report(
+	stdout io.Writer,
+	templateString string,
+	start time.Time,
+	originals []entry.Entry,
+	options ...ReportOption,
+) error {
 	metadata, err := annotate(originals)
 	if err != nil {
 		return fmt.Errorf("formatting metadata: %w", err)
 	}
+	metadata.Time = start
 
 	for i, opt := range options {
 		if err := opt(metadata); err != nil {
