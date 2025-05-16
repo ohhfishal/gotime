@@ -19,11 +19,15 @@ var defaultTemplate string
 //go:embed templates/markdown.tpl
 var markdownTemplate string
 
+//go:embed templates/html.tpl
+var htmlTemplate string
+
 type OutputFormat string
 
 const (
 	OutputFormatDefault  = ""
 	OutputFormatMarkdown = "markdown"
+	OutputFormatHTML     = "html"
 )
 
 var durationFormats map[string]any = map[string]any{
@@ -33,6 +37,8 @@ var durationFormats map[string]any = map[string]any{
 
 func (format OutputFormat) Template() (string, error) {
 	switch format {
+	case OutputFormatHTML:
+		return htmlTemplate, nil
 	case OutputFormatMarkdown:
 		return markdownTemplate, nil
 	case OutputFormatDefault:

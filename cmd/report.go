@@ -16,7 +16,7 @@ type ReportCmd struct {
 	End            time.Time `short:"t" optional:"" format:"2006-01-02" help:"Date to end report from (default: start + 1d)"`
 	DurationFormat string    `enum:"default,hour" default:"default" help:"How to format duration in output (values: default,hour)" env:"DURATION_FORMAT"`
 	// TODO: Make this a cleaner API
-	Output          report.OutputFormat `short:"o" enum:"default,markdown" default:"default" help:"Premade formats (default,markdown)"`
+	Output          report.OutputFormat `short:"o" enum:"default,markdown,html" default:"default" help:"Premade formats (default,markdown,html)"`
 	Template        string              `type:"existingfile" help:"File text/template to use in making report (Overrides --output)"`
 	templateContent string              `kong:"-"`
 }
