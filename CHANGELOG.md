@@ -5,6 +5,9 @@
 ## [Upcoming] - 2025-XX-XX
 ### Added
 - `report` html template
+
+### Removed
+- `append` and `continue` commands
  
 ## [v0.5.0] - 2025-05-13
 ### Added
