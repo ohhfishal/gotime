@@ -59,7 +59,7 @@ The final `gotime report` may produce:
 
 ### Example
 ```bash
-export GOTIME_LOG="/home/user/.gotime/schedule.log"
+export GOTIME_LOG="~/.config/gotime.csv"
 export DURATION_FORMAT="hour"
 ```
 

@@ -16,8 +16,8 @@ type UntilCmd struct {
 	Template string        `type:"existingfile" placeholder:"PATH" help:"Override output using a text/template"`
 }
 
-func (cmd *UntilCmd) Run(stdout io.Writer, entrySet EntrySet, nowFunc func() time.Time) error {
-	entries, err := entrySet.GetAll()
+func (cmd *UntilCmd) Run(stdout io.Writer, log string, nowFunc func() time.Time) error {
+	entries, err := entry.ReadAllFromFile(log)
 	if err != nil {
 		return fmt.Errorf(`reading entries: %w`, err)
 	}

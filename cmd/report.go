@@ -21,8 +21,8 @@ type ReportCmd struct {
 	templateContent string              `kong:"-"`
 }
 
-func (cmd *ReportCmd) Run(stdout io.Writer, entrySet EntrySet) error {
-	entries, err := entrySet.GetAll()
+func (cmd *ReportCmd) Run(stdout io.Writer, log string) error {
+	entries, err := entry.ReadAllFromFile(log)
 	if err != nil {
 		return fmt.Errorf(`reading entries: %w`, err)
 	}
