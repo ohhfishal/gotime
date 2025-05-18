@@ -5,14 +5,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ohhfishal/gotime/file"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 const TimeFormat = time.DateTime
 
-func TestEncodeDecode(t *testing.T) {
+func TestWriteRead(t *testing.T) {
 	type EncodeDecodeTest struct {
 		Name  string
 		Entry Entry
@@ -36,13 +35,14 @@ func TestEncodeDecode(t *testing.T) {
 			require := require.New(t)
 
 			var buffer strings.Builder
-			err := file.Write(&buffer, test.Entry)
+			err := Append(&buffer, test.Entry)
 			require.Nil(err)
 
 			t.Log(buffer.String())
-			entry, err := Decode(buffer.String())
+			entries, err := ReadAll(strings.NewReader(buffer.String()))
 			require.Nil(err)
-			RequireEntryEqual(t, entry, test.Entry)
+			require.Equal(len(entries), 1)
+			RequireEntryEqual(t, entries[0], test.Entry)
 		})
 	}
 }
@@ -83,17 +83,15 @@ func TestReadAll(t *testing.T) {
 			var buffer strings.Builder
 
 			for _, entry := range test.Entries {
-				err := file.Write(&buffer, entry)
+				err := Append(&buffer, entry)
 				require.Nil(err)
 			}
 
 			reader := strings.NewReader(buffer.String())
-			t.Logf("Wrote:\n%s", buffer.String())
-			entries, err := file.ReadAll(reader, Decode)
-			// entries, err := ReadAll(reader)
+			entries, err := ReadAll(reader)
 			require.Nil(err)
-
 			assert.Equal(len(test.Entries), len(entries), "entries length")
+
 			for i, entry := range entries {
 				require.LessOrEqual(i, len(test.Entries), "out of bounds")
 				RequireEntryEqual(t, entry, test.Entries[i])

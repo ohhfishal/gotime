@@ -1,11 +1,14 @@
 package entry
 
 import (
+	"encoding/csv"
 	"fmt"
-	"strings"
+	"io"
+	"os"
 	"time"
 )
 
+const NUM_RECORDS = 3
 const timeLayout = time.DateTime
 
 type Entry struct {
@@ -56,39 +59,67 @@ func Compare(a, b Entry) int {
 	return a.Time.Compare(b.Time)
 }
 
-func (entry Entry) Encode() string {
-	return fmt.Sprintf(`%v,%s: %s`,
+func Append(file io.Writer, entry Entry) error {
+	writer := csv.NewWriter(file)
+	if err := writer.Write([]string{
 		entry.Time.Format(timeLayout),
 		entry.Category,
 		entry.Note,
-	)
+	}); err != nil {
+		return fmt.Errorf(`writing to file: %w`, err)
+	}
+
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return fmt.Errorf(`flushing writer: %w`, err)
+	}
+	return nil
 }
 
-func Decode(line string) (Entry, error) {
-	var entry Entry
-	var err error
-
-	// Parse time
-	timeLength := len(timeLayout)
-	entry.Time, err = time.Parse(timeLayout, line[:timeLength])
+func ReadAll(file io.Reader) ([]Entry, error) {
+	reader := csv.NewReader(file)
+	records, err := reader.ReadAll()
 	if err != nil {
-		return Entry{}, fmt.Errorf("parsing time: %w", err)
+		return nil, fmt.Errorf(`could not read file: %w`, err)
 	}
 
-	// Parse Category
-	line = line[timeLength:]
-	if line == `` {
-		return Entry{}, fmt.Errorf("unexpected eof")
-	}
+	var entries []Entry
+	for _, record := range records {
+		if len(record) != NUM_RECORDS {
+			return nil, fmt.Errorf(
+				`record contained %d columns but expected %d`, len(record), NUM_RECORDS,
+			)
+		}
 
-	if line[0] != ',' {
-		return Entry{}, fmt.Errorf(`expected :",": found "%b"`, line[0])
+		var entry Entry
+		entry.Time, err = time.Parse(timeLayout, record[0])
+		if err != nil {
+			return nil, fmt.Errorf(`invalid time "%s": %w`, record[0], err)
+		}
+		entry.Category = record[1]
+		entry.Note = record[2]
+		entries = append(entries, entry)
 	}
-	cutIndex := strings.Index(line, ":")
-	if cutIndex == -1 {
-		return Entry{}, fmt.Errorf("unexpected eof")
+	return entries, nil
+}
+
+func AppendFile(path string, entry Entry) error {
+	file, err := os.OpenFile(
+		path,
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY,
+		0666,
+	)
+	if err != nil {
+		return fmt.Errorf(`could not open file: %w`, err)
 	}
-	entry.Category = line[1:cutIndex]
-	entry.Note = strings.TrimSpace(line[cutIndex+1:])
-	return entry, nil
+	return Append(file, entry)
+}
+
+func ReadAllFromFile(path string) ([]Entry, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf(`can not open file: %s`, path)
+	}
+	defer file.Close()
+	return ReadAll(file)
 }

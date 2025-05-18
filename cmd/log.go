@@ -37,11 +37,11 @@ func (cmd *LogCmd) AfterApply() error {
 	return nil
 }
 
-func (cmd *LogCmd) Run(entrySet EntrySet) error {
+func (cmd *LogCmd) Run(log string) error {
 	newEntry := entry.Entry{
 		Category: cmd.Category,
 		Note:     strings.Join(cmd.Note, " "),
 		Time:     cmd.Time,
 	}
-	return entrySet.Append(newEntry)
+	return entry.AppendFile(log, newEntry)
 }
