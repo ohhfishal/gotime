@@ -7,7 +7,6 @@ import (
 
 	"github.com/alecthomas/kong"
 	"github.com/ohhfishal/gotime/entry"
-	"github.com/ohhfishal/gotime/file"
 )
 
 const DefaultLogPath = "$HOME/.config/gotime.log"
@@ -68,11 +67,11 @@ func (c Config) LogPath() string {
 }
 
 func (c Config) GetAll() ([]entry.Entry, error) {
-	return file.ReadAllFrom(c.LogPath(), entry.Decode)
+	return entry.ReadAllFromFile(c.LogPath())
 }
 
 func (c Config) Append(newEntry entry.Entry) error {
-	return file.WriteTo(c.LogPath(), c.FilePerms(), newEntry)
+	return entry.AppendFile(c.LogPath(), newEntry)
 }
 
 func (c Config) Today() (*time.Time, error) {

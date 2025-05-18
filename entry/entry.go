@@ -1,11 +1,14 @@
 package entry
 
 import (
+	"encoding/csv"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 )
 
+const NUM_RECORDS = 3
 const timeLayout = time.DateTime
 
 type Entry struct {
@@ -62,6 +65,65 @@ func (entry Entry) Encode() string {
 		entry.Category,
 		entry.Note,
 	)
+}
+
+func AppendFile(path string, entry Entry) error {
+	file, err := os.OpenFile(
+		path,
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY,
+		0666,
+	)
+	if err != nil {
+		return fmt.Errorf(`could not open file: %w`)
+	}
+
+	writer := csv.NewWriter(file)
+	if err := writer.Write([]string{
+		entry.Time.Format(timeLayout),
+		entry.Category,
+		entry.Note,
+	}); err != nil {
+		return fmt.Errorf(`writing to file: %w`, err)
+	}
+
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return fmt.Errorf(`flushing writer: %w`, err)
+	}
+	return nil
+}
+
+func ReadAllFromFile(path string) ([]Entry, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf(`can not open file: %s`, path)
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	records, err := reader.ReadAll()
+	if err != nil {
+		return nil, fmt.Errorf(`could not read file: %w`, err)
+	}
+
+	var entries []Entry
+	for _, record := range records {
+		if len(record) != NUM_RECORDS {
+			return nil, fmt.Errorf(
+				`record contained %d columns but expected %d`, len(record), NUM_RECORDS,
+			)
+		}
+
+		var entry Entry
+		entry.Time, err = time.Parse(timeLayout, record[0])
+		if err != nil {
+			return nil, fmt.Errorf(`invalid time "%s": %w`, record[0], err)
+		}
+		entry.Category = record[1]
+		entry.Note = record[2]
+		entries = append(entries, entry)
+	}
+	return entries, nil
 }
 
 func Decode(line string) (Entry, error) {

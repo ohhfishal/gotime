@@ -3,6 +3,8 @@
 # Change Log
 
 ## [Upcoming] - 2025-XX-XX
+### Breaking Changes ⚠️ 
+- Changed log file to be a CSV. To transition, use the following command: `sed 's/: /, /g' $FILE`
 ### Added
 - `report` html template
 
