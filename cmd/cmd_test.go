@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/ohhfishal/gotime/entry"
-	"github.com/ohhfishal/gotime/file"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -107,7 +106,7 @@ func newFile(t *testing.T, entries []entry.Entry) string {
 	require.Nil(err)
 
 	for _, newEntry := range entries {
-		err := file.Write(writer, newEntry)
+		err := entry.Append(writer, newEntry)
 		require.Nil(err)
 	}
 

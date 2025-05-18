@@ -3,8 +3,8 @@ package entry
 import (
 	"encoding/csv"
 	"fmt"
+	"io"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -59,24 +59,7 @@ func Compare(a, b Entry) int {
 	return a.Time.Compare(b.Time)
 }
 
-func (entry Entry) Encode() string {
-	return fmt.Sprintf(`%v,%s: %s`,
-		entry.Time.Format(timeLayout),
-		entry.Category,
-		entry.Note,
-	)
-}
-
-func AppendFile(path string, entry Entry) error {
-	file, err := os.OpenFile(
-		path,
-		os.O_APPEND|os.O_CREATE|os.O_WRONLY,
-		0666,
-	)
-	if err != nil {
-		return fmt.Errorf(`could not open file: %w`)
-	}
-
+func Append(file io.Writer, entry Entry) error {
 	writer := csv.NewWriter(file)
 	if err := writer.Write([]string{
 		entry.Time.Format(timeLayout),
@@ -93,13 +76,7 @@ func AppendFile(path string, entry Entry) error {
 	return nil
 }
 
-func ReadAllFromFile(path string) ([]Entry, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, fmt.Errorf(`can not open file: %s`, path)
-	}
-	defer file.Close()
-
+func ReadAll(file io.Reader) ([]Entry, error) {
 	reader := csv.NewReader(file)
 	records, err := reader.ReadAll()
 	if err != nil {
@@ -126,31 +103,23 @@ func ReadAllFromFile(path string) ([]Entry, error) {
 	return entries, nil
 }
 
-func Decode(line string) (Entry, error) {
-	var entry Entry
-	var err error
-
-	// Parse time
-	timeLength := len(timeLayout)
-	entry.Time, err = time.Parse(timeLayout, line[:timeLength])
+func AppendFile(path string, entry Entry) error {
+	file, err := os.OpenFile(
+		path,
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY,
+		0666,
+	)
 	if err != nil {
-		return Entry{}, fmt.Errorf("parsing time: %w", err)
+		return fmt.Errorf(`could not open file: %w`, err)
 	}
+	return Append(file, entry)
+}
 
-	// Parse Category
-	line = line[timeLength:]
-	if line == `` {
-		return Entry{}, fmt.Errorf("unexpected eof")
+func ReadAllFromFile(path string) ([]Entry, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf(`can not open file: %s`, path)
 	}
-
-	if line[0] != ',' {
-		return Entry{}, fmt.Errorf(`expected :",": found "%b"`, line[0])
-	}
-	cutIndex := strings.Index(line, ":")
-	if cutIndex == -1 {
-		return Entry{}, fmt.Errorf("unexpected eof")
-	}
-	entry.Category = line[1:cutIndex]
-	entry.Note = strings.TrimSpace(line[cutIndex+1:])
-	return entry, nil
+	defer file.Close()
+	return ReadAll(file)
 }
