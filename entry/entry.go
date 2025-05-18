@@ -112,6 +112,7 @@ func AppendFile(path string, entry Entry) error {
 	if err != nil {
 		return fmt.Errorf(`could not open file: %w`, err)
 	}
+ defer file.Close()
 	return Append(file, entry)
 }
 
