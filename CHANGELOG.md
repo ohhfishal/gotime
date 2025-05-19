@@ -4,7 +4,7 @@
 
 ## [Upcoming] - 2025-XX-XX
 ### **Breaking** ⚠️
-- Changed log file to be a CSV. To transition, use the following command: `sed 's/: /, /g' $FILE`.
+- Changed log file to be a CSV. To transition, use the following command: `sed -i 's/: /, /g' <LOG_FILE>; sed -i 's/Cont,/Cont: /g'`.
 - Removed `append` and `continue` commands
 
 ### Added
