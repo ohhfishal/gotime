@@ -3,7 +3,7 @@
 # Change Log
 
 ## [Upcoming] - 2025-XX-XX
-### **Breaking ⚠️ **
+### **Breaking** ⚠️
 - Changed log file to be a CSV. To transition, use the following command: `sed 's/: /, /g' $FILE`.
 - Removed `append` and `continue` commands
 
