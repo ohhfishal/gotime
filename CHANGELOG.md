@@ -3,12 +3,13 @@
 # Change Log
 
 ## [Upcoming] - 2025-XX-XX
-### **Breaking** ⚠️
-- Changed log file to be a CSV. To transition, use the following command: `sed -i 's/: /, /g' <LOG_FILE>; sed -i 's/Cont,/Cont: /g' <LOG_FILE>`.
+### **Breaking ⚠️ **
+- Changed log file to be a CSV. To transition, use the following command: `sed 's/: /, /g' $FILE`.
 - Removed `append` and `continue` commands
 
 ### Added
 - `report` html template
+- `log` "-" category as an alternative to `append`
  
 ## [v0.5.0] - 2025-05-13
 ### Added

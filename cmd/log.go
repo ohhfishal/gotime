@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -8,7 +10,7 @@ import (
 )
 
 type LogCmd struct {
-	Category string    `arg:"" required:"" help:"Category to log the new entry under"`
+	Category string    `arg:"" required:"" help:"Category to log the new entry under. (Use '-' to use the last category logged)"`
 	Note     []string  `arg:"" optional:"" help:"Description for the entry"`
 	Date     time.Time `short:"d" optional:"" format:"2006-01-02" help:"Date to log (default: today)"`
 	Time     time.Time `short:"t" optional:"" format:"15:04" help:"Time to log entry at (default: now)"`
@@ -38,6 +40,16 @@ func (cmd *LogCmd) AfterApply() error {
 }
 
 func (cmd *LogCmd) Run(log string) error {
+	if cmd.Category == "-" {
+		entries, err := entry.ReadAllFromFile(log)
+		if err != nil {
+			return fmt.Errorf(`could not replace "-": %w`, err)
+		} else if len(entries) == 0 {
+			return errors.New(`could not replace "-": no entries in log`)
+		}
+		cmd.Category = entries[len(entries)-1].Category
+	}
+
 	newEntry := entry.Entry{
 		Category: cmd.Category,
 		Note:     strings.Join(cmd.Note, " "),
