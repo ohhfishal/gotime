@@ -20,4 +20,4 @@ Provide a useful CLI tool for managing ones daily work journal.
 
 
 # Futher Goals (Not required for V1)
-- [ ] `export`: Exports data to a standard format (Ex: `json`).
+- [X] `export`: Exports data to a standard format (Ex: `json`). (**NOTE:** Counting moving to a CSV based log file as a means of a [credible exit](https://newsletter.squishy.computer/p/credible-exit))
