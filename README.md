@@ -54,7 +54,7 @@ The final `gotime report` may produce:
 
 | Name | Description | Default |
 | ---- | ----------- | ------- |
-| `GOTIME_LOG` | Filepath to log file used to `log` and `report` tasks. | `$HOME/.config/gotime.log` |
+| `GOTIME_LOG` | Filepath to log file used to `log` and `report` tasks. | `~/.config/gotime.csv` |
 | `DURATION_FORMAT` | Enum that controls the way durations are formatted (default or hour) | `default` |
 
 ### Example
