@@ -14,6 +14,8 @@ Provide a useful CLI tool for managing ones daily work journal.
 
 ## Improvements
 - [ ] Better docs
+  - [ ] https://pkg.go.dev/github.com/ohhfishal/gotime
+  - [ ] Video example of `tui`
 - [ ] Improved `report` functionality 
   - [X] More templates (Markdown)
   - [ ] Condense `until` command to be part of `report`)
