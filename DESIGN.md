@@ -10,6 +10,7 @@ Provide a useful CLI tool for managing ones daily work journal.
 ## Commands
 - [X] `log`: Create a new entry in your daily log
 - [X] `report`: Prints out a human-readable report.
+- [ ] `tui`: Run gotime as a TUI.
 
 ## Improvements
 - [ ] Better docs
