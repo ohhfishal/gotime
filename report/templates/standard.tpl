@@ -19,3 +19,8 @@
   {{- duration .Total | printf "%-9s" }}
   {{- printf "\n" -}}
 {{- end -}}
+{{- if .Until }} 
+ Time left
+ ---------
+ {{ duration .Until }}
+{{ end -}}

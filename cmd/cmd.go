@@ -17,7 +17,6 @@ type Config struct {
 type RootCmd struct {
 	Log     LogCmd    `default:"withargs" cmd:"" help:"Log using a custom category and note."`
 	Report  ReportCmd `cmd:"" help:"Print summary report"`
-	Until   UntilCmd  `cmd:"" help:"How long until a certain amount of time is logged."`
 	LogFile string    `default:"~/.config/gotime.csv" help:"Path to log file." env:"GOTIME_LOG"`
 }
 

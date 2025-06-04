@@ -2,6 +2,10 @@
 
 # Change Log
 
+## [Upcoming] - 2025-XX-XX
+### **Breaking** ⚠️
+- Moved `until` to be an option in `report`
+
 ## [v0.6.0] - 2025-05-20
 ### **Breaking** ⚠️
 - Changed log file to be a CSV. To transition, use the following command: `sed 's/: /, /g' $FILE`.
