@@ -14,11 +14,13 @@ Provide a useful CLI tool for managing ones daily work journal.
 
 ## Improvements
 - [ ] Better docs
+  - [ ] https://pkg.go.dev/github.com/ohhfishal/gotime
+  - [ ] Video example of `tui`
+  - [ ] Redesigned `README.md`
 - [ ] Improved `report` functionality 
   - [X] More templates (Markdown)
   - [X] Condense `until` command to be part of `report`)
   - [ ] Subcategories `project/task`
-
 
 # Futher Goals (Not required for V1)
 - [X] `export`: Exports data to a standard format (Ex: `json`). (**NOTE:** Counting moving to a CSV based log file as a means of a [credible exit](https://newsletter.squishy.computer/p/credible-exit))
