@@ -8,7 +8,7 @@ Provide a useful CLI tool for managing ones daily work journal.
 
 # V1 Goals
 ## Commands
-- [X] `log`: Create a new entry in your daily log.
+- [X] `log`: Create a new entry in your daily log
 - [X] `report`: Prints out a human-readable report.
 - [ ] `tui`: Run gotime as a TUI.
 
@@ -19,9 +19,8 @@ Provide a useful CLI tool for managing ones daily work journal.
   - [ ] Redesigned `README.md`
 - [ ] Improved `report` functionality 
   - [X] More templates (Markdown)
-  - [ ] Condense `until` command to be part of `report`)
+  - [X] Condense `until` command to be part of `report`)
   - [ ] Subcategories `project/task`
-
 
 # Futher Goals (Not required for V1)
 - [X] `export`: Exports data to a standard format (Ex: `json`). (**NOTE:** Counting moving to a CSV based log file as a means of a [credible exit](https://newsletter.squishy.computer/p/credible-exit))

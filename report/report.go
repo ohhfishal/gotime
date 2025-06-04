@@ -48,17 +48,13 @@ func (format OutputFormat) Template() (string, error) {
 	}
 }
 
-var defaultTemplates = map[string]string{
-	"": defaultTemplate,
-}
-
 // TODO: Add some options!
 // - [ ] Different time formatting? Turn on feature booleans?
 // - [ ] Extra metadata?
 // - [ ] Move the templateString here? WithTemplate(string)
 type ReportOption func(*Metadata) error
 
-func WithDurationFormat(format string) func(*Metadata) error {
+func WithDurationFormat(format string) ReportOption {
 	return func(metadata *Metadata) error {
 		f, ok := durationFormats[format]
 		if !ok {
@@ -69,12 +65,20 @@ func WithDurationFormat(format string) func(*Metadata) error {
 	}
 }
 
+func WithDesiredDurationLogged(maxDuration time.Duration) ReportOption {
+	return func(metadata *Metadata) error {
+		metadata.Until = maxDuration - metadata.Total
+		return nil
+	}
+}
+
 type Metadata struct {
 	Schedule   []Entry
 	Categories map[string]time.Duration
 	Total      time.Duration
-	funcs      map[string]any
 	Time       time.Time
+	Until      time.Duration
+	funcs      map[string]any
 }
 
 type Entry struct {
