@@ -16,6 +16,7 @@ go build
 ```
 
 ## Basic Examples
+<!-- TODO: This is wrong -->
 If the following were run throughout the day:
 ```
 ./gotime log project Working on Bug
@@ -55,11 +56,13 @@ The final `gotime report` may produce:
 | Name | Description | Default |
 | ---- | ----------- | ------- |
 | `GOTIME_LOG` | Filepath to log file used to `log` and `report` tasks. | `~/.config/gotime.csv` |
-| `DURATION_FORMAT` | Enum that controls the way durations are formatted (default or hour) | `default` |
+| `GOTIME_DURATION_FORMAT` | Enum that controls the way durations are formatted (default or hour) | `default` |
+| `GOTIME_USE_ROOT_CATEGORY` | Enable to use the root category of a nested category when using `report`. (Example: "project/task" would become "project")| `false` |
 
 ### Example
 ```bash
 export GOTIME_LOG="~/.config/gotime.csv"
-export DURATION_FORMAT="hour"
+export GOTIME_DURATION_FORMAT="hour"
+export GOTIME_USER_ROOT_CATEGORY="true"
 ```
 
