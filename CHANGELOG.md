@@ -5,6 +5,7 @@
 ## [Upcoming] - 2025-XX-XX
 ### **Breaking** ⚠️
 - Moved `until` to be an option in `report`
+- Renamed env `DURATION_FORMAT` to `GOTIME_DURATION_FORMAT`
 
 ### Added
 - `report` option to treat category paths ("project/task") as their root ("project")
