@@ -41,7 +41,6 @@ type ReportArgs struct {
 	StartTime         time.Time
 	EndTime           time.Time
 	// Optional fields
-	CategoryBreakdownBroad map[string]time.Duration
 	Until                  time.Duration
 	templateFunctions      map[string]any
 }
@@ -63,7 +62,6 @@ func annotate(
 		StartTime:              start,
 		EndTime:                end,
 		CategoryBreakdown:      map[string]time.Duration{},
-		CategoryBreakdownBroad: map[string]time.Duration{},
 		templateFunctions:      defaultFuncMap,
 	}
 
@@ -116,19 +114,21 @@ func WithBroadCategoryBreakdown() Option {
 	// NOTE: Doesn't have to be a higher-order function
 	//       Only doing it for consistency with name/implementation
 	return func(args *ReportArgs) error {
+		roots := map[string]time.Duration{}
 		for category, duration := range args.CategoryBreakdown {
-			path := strings.Split("/", category)
+			path := strings.Split(category, "/")
 			if len(path) == 0 {
 				return fmt.Errorf(`broad category breakdown: invalid category: %s`, category)
 			}
 			root := path[0]
 
-			if _, ok := args.CategoryBreakdownBroad[root]; ok {
-				args.CategoryBreakdownBroad[root] += duration
+			if _, ok := roots[root]; ok {
+				roots[root] += duration
 			} else {
-				args.CategoryBreakdownBroad[root] = duration
+				roots[root] = duration
 			}
 		}
+		args.CategoryBreakdown = roots
 		return nil
 	}
 }
