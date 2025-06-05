@@ -1,6 +1,8 @@
 package report
 
 import (
+	_ "embed"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -12,6 +14,41 @@ var defaultFuncMap = map[string]any{
 	"date":       Date,
 	"duration":   Duration,
 	"truncRight": TruncRightWith,
+}
+
+//go:embed templates/standard.tpl
+var defaultTemplate string
+
+//go:embed templates/markdown.tpl
+var markdownTemplate string
+
+//go:embed templates/html.tpl
+var htmlTemplate string
+
+type OutputFormat string
+
+const (
+	OutputFormatDefault  = ""
+	OutputFormatMarkdown = "markdown"
+	OutputFormatHTML     = "html"
+)
+
+var durationFormats map[string]any = map[string]any{
+	"default": Duration,
+	"hour":    DurationHour,
+}
+
+func (format OutputFormat) Template() (string, error) {
+	switch format {
+	case OutputFormatHTML:
+		return htmlTemplate, nil
+	case OutputFormatMarkdown:
+		return markdownTemplate, nil
+	case OutputFormatDefault:
+		fallthrough
+	default:
+		return ``, errors.New(`invalid format`)
+	}
 }
 
 func TruncRightWith(size int, suffix, msg string) (string, error) {

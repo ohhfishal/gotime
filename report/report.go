@@ -1,173 +1,152 @@
 package report
 
 import (
-	_ "embed"
-	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"text/template"
 	"time"
 
 	"github.com/ohhfishal/gotime/entry"
 )
 
-//go:embed templates/standard.tpl
-var defaultTemplate string
+func Report(
+	stdout io.Writer,
+	entries []entry.Entry,
+	templateString string, start time.Time,
+	end time.Time,
+	options ...Option,
+) error {
 
-// TODO: Make this template look good as plain text
-//
-//go:embed templates/markdown.tpl
-var markdownTemplate string
-
-//go:embed templates/html.tpl
-var htmlTemplate string
-
-type OutputFormat string
-
-const (
-	OutputFormatDefault  = ""
-	OutputFormatMarkdown = "markdown"
-	OutputFormatHTML     = "html"
-)
-
-var durationFormats map[string]any = map[string]any{
-	"default": Duration,
-	"hour":    DurationHour,
-}
-
-func (format OutputFormat) Template() (string, error) {
-	switch format {
-	case OutputFormatHTML:
-		return htmlTemplate, nil
-	case OutputFormatMarkdown:
-		return markdownTemplate, nil
-	case OutputFormatDefault:
-		fallthrough
-	default:
-		return ``, errors.New(`invalid format`)
+	args, err := annotate(entries, start, end, options...)
+	if err != nil {
+		return fmt.Errorf(`creating entries metadata: %w`, err)
 	}
-}
 
-// TODO: Add some options!
-// - [ ] Different time formatting? Turn on feature booleans?
-// - [ ] Extra metadata?
-// - [ ] Move the templateString here? WithTemplate(string)
-type ReportOption func(*Metadata) error
-
-func WithDurationFormat(format string) ReportOption {
-	return func(metadata *Metadata) error {
-		f, ok := durationFormats[format]
-		if !ok {
-			return fmt.Errorf(`invalid duration format: %s`, format)
-		}
-		metadata.funcs["duration"] = f
-		return nil
+	if err := args.Print(stdout, templateString); err != nil {
+		return fmt.Errorf(`printing: %w`, err)
 	}
+	return nil
 }
 
-func WithDesiredDurationLogged(maxDuration time.Duration) ReportOption {
-	return func(metadata *Metadata) error {
-		metadata.Until = maxDuration - metadata.Total
-		return nil
-	}
-}
-
-type Metadata struct {
-	Schedule   []Entry
-	Categories map[string]time.Duration
-	Total      time.Duration
-	Time       time.Time
-	Until      time.Duration
-	funcs      map[string]any
-}
-
-type Entry struct {
-	Time     time.Time
-	Category string
-	Note     string
+type ScheduleTuple struct {
+	Entry    entry.Entry
 	Duration time.Duration
 }
 
-func Report(
-	stdout io.Writer,
-	templateString string,
-	start time.Time,
-	originals []entry.Entry,
-	options ...ReportOption,
-) error {
-	metadata, err := annotate(originals)
-	if err != nil {
-		return fmt.Errorf("formatting metadata: %w", err)
-	}
-	metadata.Time = start
+type ReportArgs struct {
+	Schedule          []ScheduleTuple
+	CategoryBreakdown map[string]time.Duration
+	Total             time.Duration
+	StartTime         time.Time
+	EndTime           time.Time
+	// Optional fields
+	CategoryBreakdownBroad map[string]time.Duration
+	Until                  time.Duration
+	templateFunctions      map[string]any
+}
 
-	for i, opt := range options {
-		if err := opt(metadata); err != nil {
-			return fmt.Errorf(`applying option %d: %w`, i, err)
+func annotate(
+	entries []entry.Entry,
+	start time.Time,
+	end time.Time,
+	opts ...Option,
+) (*ReportArgs, error) {
+
+	// Filter to entries during the time range and allow us to assume i+1 exists
+	filteredEntries := append(
+		entry.Filter(entries, start, end),
+		entry.Entry{Time: end},
+	)
+
+	args := &ReportArgs{
+		StartTime:              start,
+		EndTime:                end,
+		CategoryBreakdown:      map[string]time.Duration{},
+		CategoryBreakdownBroad: map[string]time.Duration{},
+		templateFunctions:      defaultFuncMap,
+	}
+
+	for i, entry := range filteredEntries[:len(filteredEntries)-1] {
+		tuple := ScheduleTuple{
+			Entry:    entry,
+			Duration: filteredEntries[i+1].Time.Sub(entry.Time),
+		}
+		if _, ok := args.CategoryBreakdown[entry.Category]; ok {
+			args.CategoryBreakdown[entry.Category] += tuple.Duration
+		} else {
+			args.CategoryBreakdown[entry.Category] = tuple.Duration
+		}
+		args.Schedule = append(args.Schedule, tuple)
+		args.Total += tuple.Duration
+	}
+
+	for _, opt := range opts {
+		if err := opt(args); err != nil {
+			return nil, fmt.Errorf(`applying option: %w`, err)
 		}
 	}
+	return args, nil
+}
 
-	if templateString == `` {
-		templateString = defaultTemplate
+func (args ReportArgs) Print(stdout io.Writer, rawTemplate string) error {
+	if rawTemplate == `` {
+		rawTemplate = defaultTemplate
 	}
 
 	tmpl, err := template.
 		New("report-template").
-		Funcs(metadata.funcs).
-		Parse(templateString)
+		Funcs(args.templateFunctions).
+		Parse(rawTemplate)
 	if err != nil {
 		return fmt.Errorf("parsing template: %w", err)
 	}
 
-	err = tmpl.Execute(stdout, metadata)
+	err = tmpl.Execute(stdout, args)
 	if err != nil {
 		return fmt.Errorf("printing template: %w", err)
 	}
 	return nil
 }
 
-func annotate(entries []entry.Entry) (*Metadata, error) {
-	schedule := []Entry{}
-	totals := map[string]time.Duration{}
-	var total time.Duration
-	for i, cur := range entries {
-		newEntry := Entry{
-			Category: cur.Category,
-			Note:     cur.Note,
-			Time:     cur.Time,
-		}
-		if i < (len(entries) - 1) {
-			newEntry.Duration = entries[i+1].Time.Sub(cur.Time)
-		} else {
-			newEntry.Duration = deviceNow().Sub(cur.Time)
-		}
+// NOTE: Options that error should include their name in the error message
+type Option func(*ReportArgs) error
 
-		schedule = append(schedule, newEntry)
-		if _, ok := totals[newEntry.Category]; ok {
-			totals[newEntry.Category] += newEntry.Duration
-		} else {
-			totals[newEntry.Category] = newEntry.Duration
-		}
+func WithBroadCategoryBreakdown() Option {
+	// NOTE: Doesn't have to be a higher-order function
+	//       Only doing it for consistency with name/implementation
+	return func(args *ReportArgs) error {
+		for category, duration := range args.CategoryBreakdown {
+			path := strings.Split("/", category)
+			if len(path) == 0 {
+				return fmt.Errorf(`broad category breakdown: invalid category: %s`, category)
+			}
+			root := path[0]
 
-		// TODO: Make this logic more generalizable
-		if newEntry.Category != `out` {
-			total += newEntry.Duration
+			if _, ok := args.CategoryBreakdownBroad[root]; ok {
+				args.CategoryBreakdownBroad[root] += duration
+			} else {
+				args.CategoryBreakdownBroad[root] = duration
+			}
 		}
+		return nil
 	}
-	return &Metadata{
-		Categories: totals,
-		Schedule:   schedule,
-		Total:      total,
-		funcs:      defaultFuncMap,
-	}, nil
 }
 
-// TODO: Should really remove this function
-func deviceNow() time.Time {
-	final, err := time.Parse(time.DateTime, time.Now().Format(time.DateTime))
-	if err != nil {
-		// TODO: Consider if we keep this as a panic
-		panic(fmt.Errorf("could not get device time: %w", err))
+func WithUntil(expected time.Duration) Option {
+	return func(args *ReportArgs) error {
+		args.Until = expected - args.Total
+		return nil
 	}
-	return final
+}
+
+func WithDurationFormat(format string) Option {
+	return func(args *ReportArgs) error {
+		f, ok := durationFormats[format]
+		if !ok {
+			return fmt.Errorf(`duration format: invalid duration format: %s`, format)
+		}
+		args.templateFunctions["duration"] = f
+		return nil
+	}
 }

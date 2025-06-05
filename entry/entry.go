@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
 	"time"
 )
 
@@ -26,9 +27,11 @@ func Filter(entries []Entry, start, end time.Time) []Entry {
 			filtered = append(filtered, entry)
 		}
 	}
+	slices.SortFunc(filtered, Compare)
 	return filtered
 }
 
+// TODO: This function is never used...
 func DurationMap(entries []Entry, cutoff time.Time) map[string]time.Duration {
 	totals := map[string]time.Duration{}
 	// Ensure we always have an end time
@@ -47,6 +50,7 @@ func DurationMap(entries []Entry, cutoff time.Time) map[string]time.Duration {
 	return totals
 }
 
+// TODO: This function is not used either...
 func Total(totals map[string]time.Duration) time.Duration {
 	var duration time.Duration
 	for _, value := range totals {
@@ -92,10 +96,15 @@ func ReadAll(file io.Reader) ([]Entry, error) {
 		}
 
 		var entry Entry
-		entry.Time, err = time.Parse(timeLayout, record[0])
+		noLoc, err := time.Parse(timeLayout, record[0])
 		if err != nil {
 			return nil, fmt.Errorf(`invalid time "%s": %w`, record[0], err)
 		}
+		entry.Time = time.Date(
+			noLoc.Year(), noLoc.Month(), noLoc.Day(),
+			noLoc.Hour(), noLoc.Minute(), noLoc.Second(), noLoc.Nanosecond(),
+			time.Now().Location(),
+		)
 		entry.Category = record[1]
 		entry.Note = record[2]
 		entries = append(entries, entry)

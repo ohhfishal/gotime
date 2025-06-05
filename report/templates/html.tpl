@@ -23,7 +23,7 @@
 </head>
 <body>
 
-  <h1>{{ .Time | date }}</h1>
+  <h1>{{ .StartTime | date }}</h1>
 
   {{ if .Schedule | not }}
     <p>No work logged today</p>
@@ -41,10 +41,10 @@
       <tbody>
         {{range .Schedule}}
           <tr>
-            <td>{{ truncRight 12 "..." .Category }}</td>
-            <td>{{ time .Time }}</td>
+            <td>{{ truncRight 12 "..." .Entry.Category }}</td>
+            <td>{{ time .Entry.Time }}</td>
             <td>{{ duration .Duration }}</td>
-            <td>{{ truncRight 40 "..." .Note }}</td>
+            <td>{{ truncRight 40 "..." .Entry.Note }}</td>
           </tr>
         {{end}}
       </tbody>
@@ -59,7 +59,7 @@
         </tr>
       </thead>
       <tbody>
-        {{range $category, $total := .Categories}}
+        {{range $category, $total := .CategoryBreakdown}}
           <tr>
             <td>{{ truncRight 32 "..." $category }}</td>
             <td>{{ duration $total }}</td>
