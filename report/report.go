@@ -89,7 +89,7 @@ func annotate(
 
 func (args ReportArgs) Print(stdout io.Writer, rawTemplate string) error {
 	if rawTemplate == `` {
-		rawTemplate = defaultTemplate
+		rawTemplate = DefaultTemplate
 	}
 
 	tmpl, err := template.
