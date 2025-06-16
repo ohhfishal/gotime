@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -13,10 +14,24 @@ import (
 
 type TuiCmd struct {
 	// TODO: Have an instance of log and report cmd that this can then call on updates?
+	Refresh time.Duration `short:"d" default:"5s" help:"Duration between refreshing report."`
 }
 
 func (cmd *TuiCmd) AfterApply() error {
 	return nil
+}
+
+type model struct {
+	content    string
+	keys       keyMap
+	help       help.Model
+	inputStyle lipgloss.Style
+	lastKey    string
+	quitting   bool
+
+	Refresh         func() (string, error)
+	refreshDuration time.Duration
+	lastTick        time.Time
 }
 
 func (cmd *TuiCmd) Run(log string) error {
@@ -29,24 +44,38 @@ func (cmd *TuiCmd) Run(log string) error {
 		defer f.Close() // nolint:errcheck
 	}
 
-	// TODO: Have this in the CMD
-	// TODO: Also should probably use entries.GetAll and use a bubbles table instead
-	helper := ReportCmd{
-		DurationFormat: "default",
-		Output: "default",
+	refresh := func() (string, error) {
+		// TODO: Have this in the CMD
+		// TODO: Also should probably use entries.GetAll and use a bubbles table instead
+		helper := ReportCmd{
+			DurationFormat: "default",
+			Output:         "default",
+		}
+		// TODO: Call in our own AfterApply
+		if err := helper.AfterApply(); err != nil {
+			return ``, fmt.Errorf(`applying: %w`, err)
+		}
+		var stdout strings.Builder
+		if err := helper.Run(&stdout, log); err != nil {
+			return ``, fmt.Errorf(`getting report: %w`, err)
+		}
+		return stdout.String(), nil
 	}
-	// TODO: Call in our own AfterApply
-	if err := helper.AfterApply(); err != nil {
-		return fmt.Errorf(`applying: %w`, err)
-	}
-
-	// TODO: Call in the update method or somewhere else
-	var stdout strings.Builder
-	if err := helper.Run(&stdout, log); err != nil {
+	content, err := refresh()
+	if err != nil {
 		return fmt.Errorf(`getting report: %w`, err)
 	}
 
-	if _, err := tea.NewProgram(newModel(stdout.String())).Run(); err != nil {
+	model := &model{
+		content:         content,
+		keys:            keys,
+		help:            help.New(),
+		inputStyle:      lipgloss.NewStyle().Foreground(lipgloss.Color("#FF75B7")),
+		Refresh:         refresh,
+		refreshDuration: cmd.Refresh,
+	}
+
+	if _, err := tea.NewProgram(model).Run(); err != nil {
 		return fmt.Errorf(`rending tui: %w`, err)
 	}
 	return nil
@@ -56,10 +85,10 @@ func (cmd *TuiCmd) Run(log string) error {
 // key.Map. It could also very easily be a map[string]key.Binding.
 type keyMap struct {
 	// TODO: Add more keybindings
-	Up    key.Binding
-	Down  key.Binding
-	Help  key.Binding
-	Quit  key.Binding
+	Up   key.Binding
+	Down key.Binding
+	Help key.Binding
+	Quit key.Binding
 }
 
 // ShortHelp returns keybindings to be shown in the mini help view. It's part
@@ -72,8 +101,8 @@ func (k keyMap) ShortHelp() []key.Binding {
 // key.Map interface.
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.Up, k.Down}, // first column
-		{k.Help, k.Quit},                // second column
+		{k.Up, k.Down},   // first column
+		{k.Help, k.Quit}, // second column
 	}
 }
 
@@ -96,36 +125,34 @@ var keys = keyMap{
 	),
 }
 
-type model struct {
-	content string
-	keys       keyMap
-	help       help.Model
-	inputStyle lipgloss.Style
-	lastKey    string
-	quitting   bool
+type TickMsg time.Time
+
+func tickEvery(duration time.Duration) tea.Cmd {
+	return tea.Every(duration, func(t time.Time) tea.Msg {
+		return TickMsg(t)
+	})
 }
 
-func newModel(content string) model {
-	return model{
-		content: content,
-		keys:       keys,
-		help:       help.New(),
-		inputStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("#FF75B7")),
-	}
+func (m *model) Init() tea.Cmd {
+	return tickEvery(m.refreshDuration)
 }
 
-func (m model) Init() tea.Cmd {
-	return nil
-}
-
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// TODO: Update the data object (Probably after we are using a bubbles.Table)
 	switch msg := msg.(type) {
+	case TickMsg:
+		m.lastTick = time.Now()
+		content, err := m.Refresh()
+		if err != nil {
+			// TODO: Handle this more elegantly
+			panic(fmt.Errorf(`refreshing: %w`, err))
+		}
+		m.content = content
+		return m, tickEvery(m.refreshDuration)
 	case tea.WindowSizeMsg:
 		// If we set a width on the help menu it can gracefully truncate
 		// its view as needed.
 		m.help.Width = msg.Width
-
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keys.Up):
@@ -142,10 +169,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m model) View() string {
+func (m *model) View() string {
 	if m.quitting {
 		return ""
 	}
-
-	return "\n" + m.content + "\n" + m.help.View(m.keys)
+	return fmt.Sprintf(
+		"Tick: %v\n%s\n%s",
+		m.lastTick.String(),
+		m.content,
+		m.help.View(m.keys),
+	)
 }
