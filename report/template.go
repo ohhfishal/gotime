@@ -17,7 +17,7 @@ var defaultFuncMap = map[string]any{
 }
 
 //go:embed templates/standard.tpl
-var DefaultTemplate string
+var defaultTemplate string
 
 //go:embed templates/markdown.tpl
 var markdownTemplate string
@@ -45,7 +45,7 @@ func (format OutputFormat) Template() (string, error) {
 	case OutputFormatMarkdown:
 		return markdownTemplate, nil
 	case OutputFormatDefault:
-		return DefaultTemplate, nil
+		return defaultTemplate
 	default:
 		return ``, errors.New(`invalid format`)
 	}
