@@ -45,7 +45,7 @@ func (format OutputFormat) Template() (string, error) {
 	case OutputFormatMarkdown:
 		return markdownTemplate, nil
 	case OutputFormatDefault:
-		return defaultTemplate
+		return defaultTemplate, nil
 	default:
 		return ``, errors.New(`invalid format`)
 	}
