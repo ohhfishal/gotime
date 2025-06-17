@@ -9,6 +9,7 @@
 
 ### Added
 - `report` option to treat category paths ("project/task") as their root ("project")
+- `tui` proof of concept
 
 ## [v0.6.0] - 2025-05-20
 ### **Breaking** ⚠️
