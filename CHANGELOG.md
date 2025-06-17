@@ -3,6 +3,8 @@
 # Change Log
 
 ## [Upcoming] - 2025-XX-XX
+
+## [v0.7.0] - 2025-06-17
 ### **Breaking** ⚠️
 - Moved `until` to be an option in `report`
 - Renamed env `DURATION_FORMAT` to `GOTIME_DURATION_FORMAT`
@@ -72,8 +74,9 @@
  
 - Initial release
  
-[upcoming]: https://github.com/ohhfishal/gotime/compare/v0.6.0...HEAD
-[v0.6.0]: https://github.com/ohhfishal/gotime/releases/tag/v0.5.0
+[upcoming]: https://github.com/ohhfishal/gotime/compare/v0.7.0...HEAD
+[v0.7.0]: https://github.com/ohhfishal/gotime/releases/tag/v0.7.0
+[v0.6.0]: https://github.com/ohhfishal/gotime/releases/tag/v0.6.0
 [v0.5.0]: https://github.com/ohhfishal/gotime/releases/tag/v0.5.0
 [v0.4.0]: https://github.com/ohhfishal/gotime/releases/tag/v0.4.0
 [v0.3.1]: https://github.com/ohhfishal/gotime/releases/tag/v0.3.1
