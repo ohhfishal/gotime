@@ -31,6 +31,7 @@ const (
 	OutputFormatDefault  = ""
 	OutputFormatMarkdown = "markdown"
 	OutputFormatHTML     = "html"
+	OutputFormatJSON     = "json"
 )
 
 var durationFormats map[string]any = map[string]any{
@@ -46,6 +47,9 @@ func (format OutputFormat) Template() (string, error) {
 		return markdownTemplate, nil
 	case OutputFormatDefault:
 		return defaultTemplate, nil
+	case OutputFormatJSON:
+		// TODO: Hacky solution
+		fallthrough
 	default:
 		return ``, errors.New(`invalid format`)
 	}
