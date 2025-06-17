@@ -26,7 +26,7 @@ type ReportCmd struct {
 	UseRootCategory bool      `help:"Enable to report final time worked the root of a category (example:'proj/task' would be reported as 'proj''" env:"GOTIME_USE_ROOT_CATEGORY"`
 	DurationFormat  string    `enum:"default,hour" default:"default" help:"How to format duration in output (values: default,hour)" env:"GOTIME_DURATION_FORMAT"`
 	// TODO: Make this a cleaner API?
-	Output   report.OutputFormat `short:"o" enum:"default,markdown,html" default:"default" help:"Premade formats (default,markdown,html)"`
+	Output   report.OutputFormat `short:"o" enum:"default,markdown,html,json" default:"default" help:"Premade formats (default,markdown,html,json)"`
 	Template string              `type:"existingfile" help:"File text/template to use in making report (Overrides --output)"`
 	// TODO: This gets tricky since it could also be time...
 	// TODO: Also probably should be an ENV?
@@ -64,7 +64,9 @@ func (cmd *ReportCmd) AfterApply() error {
 		cmd.End = time.Now()
 	}
 
-	if content, err := cmd.Output.Template(); err == nil {
+	if cmd.Output == report.OutputFormatJSON {
+		cmd.reportOptions = append(cmd.reportOptions, report.UseJSON)
+	} else if content, err := cmd.Output.Template(); err == nil {
 		cmd.templateContent = content
 	}
 

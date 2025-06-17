@@ -1,6 +1,7 @@
 package report
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
@@ -30,19 +31,20 @@ func Report(
 }
 
 type ScheduleTuple struct {
-	Entry    entry.Entry
-	Duration time.Duration
+	Entry    entry.Entry   `json:"entry"`
+	Duration time.Duration `json:"duration"`
 }
 
 type ReportArgs struct {
-	Schedule          []ScheduleTuple
-	CategoryBreakdown map[string]time.Duration
-	Total             time.Duration
-	StartTime         time.Time
-	EndTime           time.Time
+	Schedule          []ScheduleTuple          `json:"schedule"`
+	CategoryBreakdown map[string]time.Duration `json:"category_breakdown"`
+	Total             time.Duration            `json:"total"`
+	StartTime         time.Time                `json:"start_time"`
+	EndTime           time.Time                `json:"end_time"`
 	// Optional fields
-	Until                  time.Duration
-	templateFunctions      map[string]any
+	Until             time.Duration  `json:"until,omitzero,omitempty"`
+	templateFunctions map[string]any `json:"-"`
+	useJSON           bool           `json:"-"`
 }
 
 func annotate(
@@ -59,10 +61,10 @@ func annotate(
 	)
 
 	args := &ReportArgs{
-		StartTime:              start,
-		EndTime:                end,
-		CategoryBreakdown:      map[string]time.Duration{},
-		templateFunctions:      defaultFuncMap,
+		StartTime:         start,
+		EndTime:           end,
+		CategoryBreakdown: map[string]time.Duration{},
+		templateFunctions: defaultFuncMap,
 	}
 
 	for i, entry := range filteredEntries[:len(filteredEntries)-1] {
@@ -88,6 +90,10 @@ func annotate(
 }
 
 func (args ReportArgs) Print(stdout io.Writer, rawTemplate string) error {
+	if args.useJSON {
+		encoder := json.NewEncoder(stdout)
+		return encoder.Encode(args)
+	}
 	if rawTemplate == `` {
 		rawTemplate = defaultTemplate
 	}
@@ -109,6 +115,11 @@ func (args ReportArgs) Print(stdout io.Writer, rawTemplate string) error {
 
 // NOTE: Options that error should include their name in the error message
 type Option func(*ReportArgs) error
+
+func UseJSON(args *ReportArgs) error {
+	args.useJSON = true
+	return nil
+}
 
 func WithBroadCategoryBreakdown() Option {
 	// NOTE: Doesn't have to be a higher-order function
