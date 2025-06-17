@@ -21,10 +21,10 @@ import (
 
 type ReportCmd struct {
 	// TODO: Times are tricky... Make sure this is the same timezone as time.Now()
-	Start          time.Time `short:"s" optional:"" format:"2006-01-02" help:"Date to start report from (default: today)"`
-	End            time.Time `short:"t" optional:"" format:"2006-01-02" help:"Date to end report from (default: time.Now)"`
-	UseRootCategory bool `help:"Enable to report final time worked the root of a category (example:'proj/task' would be reported as 'proj''" env:"GOTIME_USE_ROOT_CATEGORY"`
-	DurationFormat string    `enum:"default,hour" default:"default" help:"How to format duration in output (values: default,hour)" env:"GOTIME_DURATION_FORMAT"`
+	Start           time.Time `short:"s" optional:"" format:"2006-01-02" help:"Date to start report from (default: today)"`
+	End             time.Time `short:"e" optional:"" format:"2006-01-02" help:"Date to end report from (default: time.Now)"`
+	UseRootCategory bool      `help:"Enable to report final time worked the root of a category (example:'proj/task' would be reported as 'proj''" env:"GOTIME_USE_ROOT_CATEGORY"`
+	DurationFormat  string    `enum:"default,hour" default:"default" help:"How to format duration in output (values: default,hour)" env:"GOTIME_DURATION_FORMAT"`
 	// TODO: Make this a cleaner API?
 	Output   report.OutputFormat `short:"o" enum:"default,markdown,html" default:"default" help:"Premade formats (default,markdown,html)"`
 	Template string              `type:"existingfile" help:"File text/template to use in making report (Overrides --output)"`
@@ -81,7 +81,7 @@ func (cmd *ReportCmd) AfterApply() error {
 	if cmd.Until.Seconds() != float64(0) {
 		cmd.reportOptions = append(cmd.reportOptions, report.WithUntil(cmd.Until))
 	}
-	if cmd.UseRootCategory  {
+	if cmd.UseRootCategory {
 		cmd.reportOptions = append(cmd.reportOptions, report.WithBroadCategoryBreakdown())
 	}
 	return nil

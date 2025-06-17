@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -14,14 +13,28 @@ import (
 
 type TuiCmd struct {
 	// TODO: Have an instance of log and report cmd that this can then call on updates?
-	Refresh time.Duration `short:"d" default:"5s" help:"Duration between refreshing report."`
+	Debug   bool          `help:"Enabled debug options"`
+	Refresh time.Duration `default:"5s" help:"Duration between refreshing report."`
+	Report  ReportCmd     `embed:""`
+	model   Model         `kong:"-"`
 }
 
 func (cmd *TuiCmd) AfterApply() error {
-	return nil
+	return cmd.Report.AfterApply()
 }
 
-type model struct {
+type Model struct {
+	state  tea.Model
+	Report *ReportModel
+	Log    *LogModel // TODO: Implement
+	// Edit   *EditModel // TODO: Implement TUI to edit already existing entries
+}
+
+type LogModel struct {
+	// TODO: Implement TUI to create a new entry
+}
+
+type ReportModel struct {
 	content    string
 	keys       keyMap
 	help       help.Model
@@ -35,8 +48,7 @@ type model struct {
 }
 
 func (cmd *TuiCmd) Run(log string) error {
-	// TODO: Move this to an option or remove
-	if os.Getenv("HELP_DEBUG") != "" {
+	if cmd.Debug {
 		f, err := tea.LogToFile("debug.log", "help")
 		if err != nil {
 			return fmt.Errorf("opening log file: %w", err)
@@ -44,38 +56,34 @@ func (cmd *TuiCmd) Run(log string) error {
 		defer f.Close() // nolint:errcheck
 	}
 
+	// Create the function to redraw the report
+	// TODO: This doesn't *have* to be here?
 	refresh := func() (string, error) {
-		// TODO: Have this in the CMD
-		// TODO: Also should probably use entries.GetAll and use a bubbles table instead
-		helper := ReportCmd{
-			DurationFormat: "default",
-			Output:         "default",
-		}
-		// TODO: Call in our own AfterApply
-		if err := helper.AfterApply(); err != nil {
-			return ``, fmt.Errorf(`applying: %w`, err)
-		}
 		var stdout strings.Builder
-		if err := helper.Run(&stdout, log); err != nil {
+		if err := cmd.Report.Run(&stdout, log); err != nil {
 			return ``, fmt.Errorf(`getting report: %w`, err)
 		}
 		return stdout.String(), nil
 	}
+
 	content, err := refresh()
 	if err != nil {
 		return fmt.Errorf(`getting report: %w`, err)
 	}
 
-	model := &model{
-		content:         content,
-		keys:            keys,
-		help:            help.New(),
-		inputStyle:      lipgloss.NewStyle().Foreground(lipgloss.Color("#FF75B7")),
-		Refresh:         refresh,
-		refreshDuration: cmd.Refresh,
+	cmd.model = Model{
+		Report: &ReportModel{
+			content:         content,
+			keys:            keys,
+			help:            help.New(),
+			inputStyle:      lipgloss.NewStyle().Foreground(lipgloss.Color("#FF75B7")),
+			Refresh:         refresh,
+			refreshDuration: cmd.Refresh,
+		},
 	}
+	cmd.model.state = cmd.model.Report
 
-	if _, err := tea.NewProgram(model).Run(); err != nil {
+	if _, err := tea.NewProgram(&cmd.model).Run(); err != nil {
 		return fmt.Errorf(`rending tui: %w`, err)
 	}
 	return nil
@@ -133,11 +141,26 @@ func tickEvery(duration time.Duration) tea.Cmd {
 	})
 }
 
-func (m *model) Init() tea.Cmd {
+// Generic Root Model
+func (m *Model) Init() tea.Cmd {
+	return m.Report.Init()
+}
+
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	return m.Report.Update(msg)
+}
+
+func (m *Model) View() string {
+	return m.Report.View()
+}
+
+func (m *ReportModel) Init() tea.Cmd {
 	return tickEvery(m.refreshDuration)
 }
 
-func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+// Report Model
+
+func (m *ReportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// TODO: Update the data object (Probably after we are using a bubbles.Table)
 	switch msg := msg.(type) {
 	case TickMsg:
@@ -169,14 +192,26 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m *model) View() string {
+func (m *ReportModel) View() string {
 	if m.quitting {
 		return ""
 	}
 	return fmt.Sprintf(
-		"Tick: %v\n%s\n%s",
-		m.lastTick.String(),
+		"%s\n%s",
 		m.content,
 		m.help.View(m.keys),
 	)
+}
+
+// Log Model
+func (m *LogModel) Init() tea.Cmd {
+	return nil
+}
+
+func (m *LogModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	return m, nil
+}
+
+func (m *LogModel) View() string {
+	return ``
 }
