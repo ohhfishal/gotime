@@ -3,6 +3,8 @@
 # Change Log
 
 ## [Upcoming] - 2025-XX-XX
+### Added
+- `tui` option `debug`
 
 ## [v0.7.0] - 2025-06-17
 ### **Breaking** ⚠️
