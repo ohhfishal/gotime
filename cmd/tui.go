@@ -30,7 +30,6 @@ type Model struct {
 	Log    *LogModel // TODO: Implement
 	// Edit   *EditModel // TODO: Implement TUI to edit already existing entries
 	state tea.Model
-	// TODO: Enable this if Debug is true
 	spinner spinner.Model
 }
 
