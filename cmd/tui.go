@@ -7,6 +7,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -14,7 +15,7 @@ import (
 type TuiCmd struct {
 	// TODO: Have an instance of log and report cmd that this can then call on updates?
 	Debug   bool          `help:"Enabled debug options"`
-	Refresh time.Duration `default:"5s" help:"Duration between refreshing report."`
+	Refresh time.Duration `default:"30s" help:"Duration between refreshing report."`
 	Report  ReportCmd     `embed:""`
 	model   Model         `kong:"-"`
 }
@@ -24,10 +25,13 @@ func (cmd *TuiCmd) AfterApply() error {
 }
 
 type Model struct {
-	state  tea.Model
-	Report *ReportModel
+	Debug  bool
+	Report tea.Model
 	Log    *LogModel // TODO: Implement
 	// Edit   *EditModel // TODO: Implement TUI to edit already existing entries
+	state tea.Model
+	// TODO: Enable this if Debug is true
+	spinner spinner.Model
 }
 
 type LogModel struct {
@@ -35,6 +39,7 @@ type LogModel struct {
 }
 
 type ReportModel struct {
+	Debug      bool
 	content    string
 	keys       keyMap
 	help       help.Model
@@ -45,6 +50,7 @@ type ReportModel struct {
 	Refresh         func() (string, error)
 	refreshDuration time.Duration
 	lastTick        time.Time
+	lastRefresh     time.Time
 }
 
 func (cmd *TuiCmd) Run(log string) error {
@@ -70,9 +76,10 @@ func (cmd *TuiCmd) Run(log string) error {
 	if err != nil {
 		return fmt.Errorf(`getting report: %w`, err)
 	}
-
 	cmd.model = Model{
+		Debug: cmd.Debug,
 		Report: &ReportModel{
+			Debug:           cmd.Debug,
 			content:         content,
 			keys:            keys,
 			help:            help.New(),
@@ -82,6 +89,11 @@ func (cmd *TuiCmd) Run(log string) error {
 		},
 	}
 	cmd.model.state = cmd.model.Report
+
+	s := spinner.New()
+	s.Spinner = spinner.Ellipsis
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	cmd.model.spinner = s
 
 	if _, err := tea.NewProgram(&cmd.model).Run(); err != nil {
 		return fmt.Errorf(`rending tui: %w`, err)
@@ -133,29 +145,42 @@ var keys = keyMap{
 	),
 }
 
-type TickMsg time.Time
-
-func tickEvery(duration time.Duration) tea.Cmd {
-	return tea.Every(duration, func(t time.Time) tea.Msg {
-		return TickMsg(t)
-	})
-}
-
 // Generic Root Model
 func (m *Model) Init() tea.Cmd {
-	return m.Report.Init()
+	return tea.Batch(
+		m.Report.Init(),
+		m.spinner.Tick,
+	)
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	return m.Report.Update(msg)
+	cmds := []tea.Cmd{}
+	var cmd tea.Cmd
+
+	m.spinner, cmd = m.spinner.Update(msg)
+	cmds = append(cmds, cmd)
+
+	m.Report, cmd = m.Report.Update(msg)
+	cmds = append(cmds, cmd)
+
+	return m, tea.Batch(
+		cmds...,
+	)
 }
 
 func (m *Model) View() string {
-	return m.Report.View()
+	var views []string
+	if m.Debug {
+		views = append(views,
+			fmt.Sprintf(" Debug: %s", m.spinner.View()),
+		)
+	}
+	views = append(views, m.Report.View())
+	return strings.Join(views, "\n")
 }
 
 func (m *ReportModel) Init() tea.Cmd {
-	return tickEvery(m.refreshDuration)
+	return nil
 }
 
 // Report Model
@@ -163,15 +188,6 @@ func (m *ReportModel) Init() tea.Cmd {
 func (m *ReportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// TODO: Update the data object (Probably after we are using a bubbles.Table)
 	switch msg := msg.(type) {
-	case TickMsg:
-		m.lastTick = time.Now()
-		content, err := m.Refresh()
-		if err != nil {
-			// TODO: Handle this more elegantly
-			panic(fmt.Errorf(`refreshing: %w`, err))
-		}
-		m.content = content
-		return m, tickEvery(m.refreshDuration)
 	case tea.WindowSizeMsg:
 		// If we set a width on the help menu it can gracefully truncate
 		// its view as needed.
@@ -188,6 +204,18 @@ func (m *ReportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quitting = true
 			return m, tea.Quit
 		}
+	default:
+		m.lastTick = time.Now()
+		if time.Since(m.lastRefresh) > m.refreshDuration {
+			content, err := m.Refresh()
+			if err != nil {
+				// TODO: Handle this more elegantly
+				panic(fmt.Errorf(`refreshing: %w`, err))
+			}
+			m.content = content
+			m.lastRefresh = time.Now()
+		}
+		return m, nil
 	}
 	return m, nil
 }
@@ -196,10 +224,20 @@ func (m *ReportModel) View() string {
 	if m.quitting {
 		return ""
 	}
-	return fmt.Sprintf(
-		"%s\n%s",
-		m.content,
-		m.help.View(m.keys),
+	var view string
+	if m.Debug {
+		view += fmt.Sprintf(" Last Tick: %s\n Last Refresh: %s\n",
+			m.lastTick.Format(time.DateTime),
+			m.lastRefresh.Format(time.DateTime),
+		)
+	}
+
+	return strings.Join(
+		[]string{
+			view,
+			m.content,
+			m.help.View(m.keys),
+		}, "\n",
 	)
 }
 
