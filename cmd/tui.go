@@ -29,7 +29,7 @@ type Model struct {
 	Report tea.Model
 	Log    *LogModel // TODO: Implement
 	// Edit   *EditModel // TODO: Implement TUI to edit already existing entries
-	state tea.Model
+	state   tea.Model
 	spinner spinner.Model
 }
 
@@ -65,6 +65,8 @@ func (cmd *TuiCmd) Run(log string) error {
 	// TODO: This doesn't *have* to be here?
 	refresh := func() (string, error) {
 		var stdout strings.Builder
+		// TODO: This feels like a hacky solution
+		cmd.Report.End = time.Now()
 		if err := cmd.Report.Run(&stdout, log); err != nil {
 			return ``, fmt.Errorf(`getting report: %w`, err)
 		}

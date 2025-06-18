@@ -6,6 +6,9 @@
 ### Added
 - `tui` option `debug`
 
+### Fixed
+- Bug with `tui`'s report not updating after the first time.
+
 ## [v0.7.0] - 2025-06-17
 ### **Breaking** ⚠️
 - Moved `until` to be an option in `report`
