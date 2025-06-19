@@ -7,7 +7,8 @@
 - `tui` option `debug`
 
 ### Fixed
-- Bug with `tui`'s report not updating after the first time.
+- Bug with `tui`'s report not updating after the first time
+- Standard `report` to show the estimated end time when using `--until`
 
 ## [v0.7.0] - 2025-06-17
 ### **Breaking** ⚠️

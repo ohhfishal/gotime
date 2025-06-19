@@ -43,6 +43,7 @@ type ReportArgs struct {
 	EndTime           time.Time                `json:"end_time"`
 	// Optional fields
 	Until             time.Duration  `json:"until,omitzero,omitempty"`
+	UntilTime         time.Time      `json:"until_time,omitzero,omitempty"`
 	templateFunctions map[string]any `json:"-"`
 	useJSON           bool           `json:"-"`
 }
@@ -147,6 +148,7 @@ func WithBroadCategoryBreakdown() Option {
 func WithUntil(expected time.Duration) Option {
 	return func(args *ReportArgs) error {
 		args.Until = expected - args.Total
+		args.UntilTime = time.Now().Add(args.Until)
 		return nil
 	}
 }

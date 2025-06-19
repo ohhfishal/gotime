@@ -20,7 +20,7 @@
   {{- printf "\n" -}}
 {{- end -}}
 {{- if .Until }} 
- Time left
- ---------
- {{ duration .Until }}
+ Time left    End Time
+ ---------    --------
+ {{ duration .Until | printf "%-12s"}} {{ time .UntilTime }}
 {{ end -}}
