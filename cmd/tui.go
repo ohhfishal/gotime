@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/spinner"
+	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -45,6 +46,8 @@ type ReportModel struct {
 	refreshDuration time.Duration
 	lastTick        time.Time
 	lastRefresh     time.Time
+
+	table table.Model
 }
 
 type LogModel struct {
@@ -194,6 +197,26 @@ func (m *Model) View() string {
 }
 
 func (m *ReportModel) Init() tea.Cmd {
+	if !m.Debug {
+		return nil
+
+	}
+	columns := []table.Column{
+		{Title: "Category", Width: 8},
+		{Title: "Start", Width: 5},
+		{Title: "Length", Width: 8},
+		{Title: "Note", Width: 32},
+	}
+
+	rows := []table.Row{}
+
+	t := table.New(
+		table.WithColumns(columns),
+		table.WithRows(rows),
+		table.WithFocused(true),
+		table.WithHeight(7),
+	)
+	m.table = t
 	return nil
 }
 
@@ -233,6 +256,7 @@ func (m *ReportModel) View() string {
 			m.lastRefresh.Format(time.DateTime),
 			m.lastKey,
 		)
+		view += "\n" + m.table.View()
 	}
 
 	return strings.Join(

@@ -19,10 +19,11 @@ func Report(
 	options ...Option,
 ) error {
 
-	args, err := annotate(entries, start, end, options...)
+	args, err := annotate(entries, start, end)
 	if err != nil {
 		return fmt.Errorf(`creating entries metadata: %w`, err)
 	}
+	args.Apply(options...)
 
 	if err := args.Print(stdout, templateString); err != nil {
 		return fmt.Errorf(`printing: %w`, err)
@@ -48,12 +49,7 @@ type ReportArgs struct {
 	useJSON           bool           `json:"-"`
 }
 
-func annotate(
-	entries []entry.Entry,
-	start time.Time,
-	end time.Time,
-	opts ...Option,
-) (*ReportArgs, error) {
+func annotate(entries []entry.Entry, start time.Time, end time.Time) (*ReportArgs, error) {
 
 	// Filter to entries during the time range and allow us to assume i+1 exists
 	filteredEntries := append(
@@ -81,13 +77,16 @@ func annotate(
 		args.Schedule = append(args.Schedule, tuple)
 		args.Total += tuple.Duration
 	}
+	return args, nil
+}
 
-	for _, opt := range opts {
+func (args *ReportArgs) Apply(options ...Option) error {
+	for _, opt := range options {
 		if err := opt(args); err != nil {
-			return nil, fmt.Errorf(`applying option: %w`, err)
+			return fmt.Errorf(`applying option: %w`, err)
 		}
 	}
-	return args, nil
+	return nil
 }
 
 func (args ReportArgs) Print(stdout io.Writer, rawTemplate string) error {
