@@ -100,8 +100,7 @@ func (cmd *TuiCmd) Run(log string) error {
 	return nil
 }
 
-// keyMap defines a set of keybindings. To work for help it must satisfy
-// key.Map. It could also very easily be a map[string]key.Binding.
+// TODO: Make this a little cleaner since its just used in global space right now
 type keyMap struct {
 	// TODO: Add more keybindings
 	Up   key.Binding
@@ -110,22 +109,6 @@ type keyMap struct {
 	Quit key.Binding
 }
 
-// ShortHelp returns keybindings to be shown in the mini help view. It's part
-// of the key.Map interface.
-func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Help, k.Quit}
-}
-
-// FullHelp returns keybindings for the expanded help view. It's part of the
-// key.Map interface.
-func (k keyMap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.Up, k.Down},   // first column
-		{k.Help, k.Quit}, // second column
-	}
-}
-
-// TODO: Make this a little cleaner since its just used in global space right now
 var keys = keyMap{
 	Up: key.NewBinding(
 		key.WithKeys("up", "k"),
@@ -143,6 +126,18 @@ var keys = keyMap{
 		key.WithKeys("q", "esc", "ctrl+c"),
 		key.WithHelp("q", "quit"),
 	),
+}
+
+// Implements the help.KeyMap interface
+func (m Model) ShortHelp() []key.Binding {
+	return []key.Binding{keys.Help, keys.Quit}
+}
+
+func (m Model) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{keys.Up, keys.Down},   // first column
+		{keys.Help, keys.Quit}, // second column
+	}
 }
 
 // Generic Root Model
@@ -194,7 +189,7 @@ func (m *Model) View() string {
 		)
 	}
 	views = append(views, m.Report.View())
-	views = append(views, m.help.View(keys))
+	views = append(views, m.help.View(m))
 	return strings.Join(views, "\n")
 }
 
