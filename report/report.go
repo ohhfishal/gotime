@@ -23,7 +23,9 @@ func Report(
 	if err != nil {
 		return fmt.Errorf(`creating entries metadata: %w`, err)
 	}
-	args.Apply(options...)
+	if err := args.Apply(options...); err != nil {
+		return fmt.Errorf(`applying option: %w`, err)
+	}
 
 	if err := args.Print(stdout, templateString); err != nil {
 		return fmt.Errorf(`printing: %w`, err)
