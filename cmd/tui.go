@@ -29,27 +29,26 @@ type Model struct {
 	Report tea.Model
 	Log    *LogModel // TODO: Implement
 	// Edit   *EditModel // TODO: Implement TUI to edit already existing entries
-	state   tea.Model
-	spinner spinner.Model
-}
-
-type LogModel struct {
-	// TODO: Implement TUI to create a new entry
+	state      tea.Model
+	spinner    spinner.Model
+	inputStyle lipgloss.Style
+	quitting   bool
+	help       help.Model
 }
 
 type ReportModel struct {
-	Debug      bool
-	content    string
-	keys       keyMap
-	help       help.Model
-	inputStyle lipgloss.Style
-	lastKey    string
-	quitting   bool
+	Debug   bool
+	content string
+	lastKey string
 
 	Refresh         func() (string, error)
 	refreshDuration time.Duration
 	lastTick        time.Time
 	lastRefresh     time.Time
+}
+
+type LogModel struct {
+	// TODO: Implement TUI to create a new entry
 }
 
 func (cmd *TuiCmd) Run(log string) error {
@@ -82,12 +81,11 @@ func (cmd *TuiCmd) Run(log string) error {
 		Report: &ReportModel{
 			Debug:           cmd.Debug,
 			content:         content,
-			keys:            keys,
-			help:            help.New(),
-			inputStyle:      lipgloss.NewStyle().Foreground(lipgloss.Color("#FF75B7")),
 			Refresh:         refresh,
 			refreshDuration: cmd.Refresh,
 		},
+		help:       help.New(),
+		inputStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("#FF75B7")),
 	}
 	cmd.model.state = cmd.model.Report
 
@@ -127,6 +125,7 @@ func (k keyMap) FullHelp() [][]key.Binding {
 	}
 }
 
+// TODO: Make this a little cleaner since its just used in global space right now
 var keys = keyMap{
 	Up: key.NewBinding(
 		key.WithKeys("up", "k"),
@@ -155,6 +154,20 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		// If we set a width on the help menu it can gracefully truncate
+		// its view as needed.
+		m.help.Width = msg.Width
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, keys.Help):
+			m.help.ShowAll = !m.help.ShowAll
+		case key.Matches(msg, keys.Quit):
+			m.quitting = true
+			return m, tea.Quit
+		}
+	}
 	cmds := []tea.Cmd{}
 	var cmd tea.Cmd
 
@@ -170,6 +183,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
+	if m.quitting {
+		return ""
+	}
+
 	var views []string
 	if m.Debug {
 		views = append(views,
@@ -177,6 +194,7 @@ func (m *Model) View() string {
 		)
 	}
 	views = append(views, m.Report.View())
+	views = append(views, m.help.View(keys))
 	return strings.Join(views, "\n")
 }
 
@@ -189,21 +207,12 @@ func (m *ReportModel) Init() tea.Cmd {
 func (m *ReportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// TODO: Update the data object (Probably after we are using a bubbles.Table)
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		// If we set a width on the help menu it can gracefully truncate
-		// its view as needed.
-		m.help.Width = msg.Width
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.keys.Up):
+		case key.Matches(msg, keys.Up):
 			m.lastKey = "↑"
-		case key.Matches(msg, m.keys.Down):
+		case key.Matches(msg, keys.Down):
 			m.lastKey = "↓"
-		case key.Matches(msg, m.keys.Help):
-			m.help.ShowAll = !m.help.ShowAll
-		case key.Matches(msg, m.keys.Quit):
-			m.quitting = true
-			return m, tea.Quit
 		}
 	default:
 		m.lastTick = time.Now()
@@ -222,14 +231,12 @@ func (m *ReportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *ReportModel) View() string {
-	if m.quitting {
-		return ""
-	}
 	var view string
 	if m.Debug {
-		view += fmt.Sprintf(" Last Tick: %s\n Last Refresh: %s\n",
+		view += fmt.Sprintf(" Last Tick: %s\n Last Refresh: %s\n Last Key: %s\n",
 			m.lastTick.Format(time.DateTime),
 			m.lastRefresh.Format(time.DateTime),
+			m.lastKey,
 		)
 	}
 
@@ -237,7 +244,6 @@ func (m *ReportModel) View() string {
 		[]string{
 			view,
 			m.content,
-			m.help.View(m.keys),
 		}, "\n",
 	)
 }
