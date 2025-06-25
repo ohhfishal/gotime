@@ -38,6 +38,16 @@ type ScheduleTuple struct {
 	Duration time.Duration `json:"duration"`
 }
 
+func (t ScheduleTuple) CSV() []string {
+	// TODO: Get the options for hour formatting here!
+	return []string{
+		t.Entry.Category,
+		t.Entry.Time.Format("15:04"),
+		strings.TrimSuffix(t.Duration.Round(time.Minute).String(), "0s"),
+		t.Entry.Note,
+	}
+}
+
 type ReportArgs struct {
 	Schedule          []ScheduleTuple          `json:"schedule"`
 	CategoryBreakdown map[string]time.Duration `json:"category_breakdown"`
