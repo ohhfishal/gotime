@@ -5,6 +5,7 @@
 ## [Upcoming] - 2025-XX-XX
 ### Added
 - `tui` option `debug`
+- Initial `serve` command to run via a localhost HTTP server
 
 ### Fixed
 - Bug with `tui`'s report not updating after the first time
