@@ -3,6 +3,8 @@
 # Change Log
 
 ## [Upcoming] - 2025-XX-XX
+
+## [v0.8.0] - 2025-06-26
 ### Added
 - `tui` option `debug`
 - Initial `serve` command to run via a localhost HTTP server
@@ -10,6 +12,9 @@
 ### Fixed
 - Bug with `tui`'s report not updating after the first time
 - Standard `report` to show the estimated end time when using `--until`
+
+### Changed
+- Improved formatting of report in `tui`
 
 ## [v0.7.0] - 2025-06-17
 ### **Breaking** ⚠️
@@ -82,6 +87,7 @@
 - Initial release
  
 [upcoming]: https://github.com/ohhfishal/gotime/compare/v0.7.0...HEAD
+[v0.8.0]: https://github.com/ohhfishal/gotime/releases/tag/v0.8.0
 [v0.7.0]: https://github.com/ohhfishal/gotime/releases/tag/v0.7.0
 [v0.6.0]: https://github.com/ohhfishal/gotime/releases/tag/v0.6.0
 [v0.5.0]: https://github.com/ohhfishal/gotime/releases/tag/v0.5.0
