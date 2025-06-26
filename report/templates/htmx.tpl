@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<!-- TODO: Implement this to work specifically with the `gotime serve` command -->
+<!-- TODO: Also have this be a templ so it is syntax checked! -->
+<head>
+<title>Daily Report</title>
+<meta http-equiv="refresh" content="60">
+<style>
+  body {
+    font-family: sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .quick-add-bar {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+  }
+  
+  .quick-add-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  
+  .quick-add-form input, .quick-add-form select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  .quick-add-form input[type="text"].category-input {
+    min-width: 200px;
+  }
+  
+  .quick-add-form input[type="time"] {
+    width: 120px;
+  }
+  
+  .category-input {
+    min-width: 200px;
+  }
+  
+  .quick-add-form input[type="text"]:not(.category-input) {
+    flex: 1;
+    min-width: 150px;
+  }
+  
+  .add-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+  }
+  
+  .add-btn:hover {
+    background-color: #45a049;
+  }
+  
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 1em;
+  }
+  
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  th {
+    background-color: #f2f2f2;
+  }
+  
+  .label {
+    font-weight: bold;
+    color: #555;
+    white-space: nowrap;
+  }
+  
+  @media (max-width: 768px) {
+    .quick-add-form {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .quick-add-form input,
+    .quick-add-form select {
+      width: 100%;
+      box-sizing: border-box;
+    }
+  }
+</style>
+<script>
+  function setCurrentTime() {
+    const now = new Date();
+    const timeInput = document.getElementById('timeInput');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    timeInput.value = `${hours}:${minutes}`;
+  }
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    setCurrentTime();
+  });
+</script>
+</head>
+<body>
+
+  <h1>{{ .StartTime | date }}</h1>
+
+  <!-- TODO: Implement this with HTMX
+  <div class="quick-add-bar">
+    <form class="quick-add-form" action="/add-entry" method="POST">
+      <span class="label">Add Entry:</span>
+      
+      <input type="text" 
+             name="category" 
+             class="category-input"
+             placeholder="Category (e.g., Work, Break, Meeting...)"
+             required
+             title="Enter the activity category">
+      
+      <input type="time" 
+             id="timeInput"
+             name="time" 
+             title="Start time (edit if adding past entry)"
+             required>
+      
+      <input type="text" 
+             name="note" 
+             placeholder="Add a note..."
+             title="Optional note or description">
+      
+      <button type="submit" class="add-btn">Add Entry</button>
+    </form>
+  </div>
+  -->
+
+  {{ if .Schedule | not }}
+    <p>No work logged today</p>
+  {{ else }}
+    <h2>Schedule</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Start</th>
+          <th>Length</th>
+          <th>Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Schedule}}
+          <tr>
+            <td>{{ truncRight 12 "..." .Entry.Category }}</td>
+            <td>{{ time .Entry.Time }}</td>
+            <td>{{ duration .Duration }}</td>
+            <td>{{ truncRight 40 "..." .Entry.Note }}</td>
+          </tr>
+        {{end}}
+      </tbody>
+    </table>
+
+    <h2>Summary</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Length</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range $category, $total := .CategoryBreakdown}}
+          <tr>
+            <td>{{ truncRight 32 "..." $category }}</td>
+            <td>{{ duration $total }}</td>
+          </tr>
+        {{end}}
+        <tr>
+          <td><strong>{{ truncRight 32 "..." "total" }}</strong></td>
+          <td><strong>{{ duration .Total }}</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  {{ end }}
+
+</body>
+</html>

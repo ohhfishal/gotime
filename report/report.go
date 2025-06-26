@@ -19,12 +19,9 @@ func Report(
 	options ...Option,
 ) error {
 
-	args, err := annotate(entries, start, end)
+	args, err := annotate(entries, start, end, options...)
 	if err != nil {
 		return fmt.Errorf(`creating entries metadata: %w`, err)
-	}
-	if err := args.Apply(options...); err != nil {
-		return fmt.Errorf(`applying option: %w`, err)
 	}
 
 	if err := args.Print(stdout, templateString); err != nil {
@@ -36,16 +33,6 @@ func Report(
 type ScheduleTuple struct {
 	Entry    entry.Entry   `json:"entry"`
 	Duration time.Duration `json:"duration"`
-}
-
-func (t ScheduleTuple) CSV() []string {
-	// TODO: Get the options for hour formatting here!
-	return []string{
-		t.Entry.Category,
-		t.Entry.Time.Format("15:04"),
-		strings.TrimSuffix(t.Duration.Round(time.Minute).String(), "0s"),
-		t.Entry.Note,
-	}
 }
 
 type ReportArgs struct {
@@ -61,7 +48,12 @@ type ReportArgs struct {
 	useJSON           bool           `json:"-"`
 }
 
-func annotate(entries []entry.Entry, start time.Time, end time.Time) (*ReportArgs, error) {
+func annotate(
+	entries []entry.Entry,
+	start time.Time,
+	end time.Time,
+	opts ...Option,
+) (*ReportArgs, error) {
 
 	// Filter to entries during the time range and allow us to assume i+1 exists
 	filteredEntries := append(
@@ -89,16 +81,13 @@ func annotate(entries []entry.Entry, start time.Time, end time.Time) (*ReportArg
 		args.Schedule = append(args.Schedule, tuple)
 		args.Total += tuple.Duration
 	}
-	return args, nil
-}
 
-func (args *ReportArgs) Apply(options ...Option) error {
-	for _, opt := range options {
+	for _, opt := range opts {
 		if err := opt(args); err != nil {
-			return fmt.Errorf(`applying option: %w`, err)
+			return nil, fmt.Errorf(`applying option: %w`, err)
 		}
 	}
-	return nil
+	return args, nil
 }
 
 func (args ReportArgs) Print(stdout io.Writer, rawTemplate string) error {

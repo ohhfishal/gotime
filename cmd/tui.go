@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -9,16 +8,14 @@ import (
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/spinner"
-	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ohhfishal/gotime/report"
 )
 
 type TuiCmd struct {
 	// TODO: Have an instance of log and report cmd that this can then call on updates?
 	Debug   bool          `help:"Enabled debug options"`
-	Refresh time.Duration `default:"10s" help:"Duration between refreshing report."`
+	Refresh time.Duration `default:"30s" help:"Duration between refreshing report."`
 	Report  ReportCmd     `embed:""`
 	model   Model         `kong:"-"`
 }
@@ -44,14 +41,10 @@ type ReportModel struct {
 	content string
 	lastKey string
 
+	Refresh         func() (string, error)
 	refreshDuration time.Duration
 	lastTick        time.Time
 	lastRefresh     time.Time
-
-	tables []table.Model
-
-	reportCmd ReportCmd
-	log       string
 }
 
 type LogModel struct {
@@ -88,9 +81,8 @@ func (cmd *TuiCmd) Run(log string) error {
 		Report: &ReportModel{
 			Debug:           cmd.Debug,
 			content:         content,
+			Refresh:         refresh,
 			refreshDuration: cmd.Refresh,
-			reportCmd:       cmd.Report,
-			log:             log,
 		},
 		help:       help.New(),
 		inputStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("#FF75B7")),
@@ -202,80 +194,10 @@ func (m *Model) View() string {
 }
 
 func (m *ReportModel) Init() tea.Cmd {
-	if !m.Debug {
-		return nil
-
-	}
-	if err := m.updateTables(); err != nil {
-		panic(err)
-	}
 	return nil
 }
 
 // Report Model
-
-func (m *ReportModel) updateTables() error {
-	var stdout strings.Builder
-
-	m.reportCmd.End = time.Now()
-	m.reportCmd.Output = report.OutputFormatJSON
-	if err := m.reportCmd.AfterApply(); err != nil {
-		return fmt.Errorf(`applying defaults: %w`, err)
-	}
-
-	if err := m.reportCmd.Run(&stdout, m.log); err != nil {
-		return fmt.Errorf(`getting report: %w`, err)
-	}
-
-	var formatted report.ReportArgs
-	if err := json.Unmarshal([]byte(stdout.String()), &formatted); err != nil {
-		return fmt.Errorf(`got invalid report: %w`, err)
-	}
-
-	columns := []table.Column{
-		{Title: "Category", Width: 8},
-		{Title: "Start", Width: 5},
-		{Title: "Length", Width: 8},
-		{Title: "Note", Width: 32},
-	}
-	rows := []table.Row{}
-	for _, entry := range formatted.Schedule {
-		rows = append(rows, entry.CSV())
-	}
-
-	category_columns := []table.Column{
-		{Title: "Category", Width: 8},
-		{Title: "Length", Width: 8},
-	}
-	category_rows := []table.Row{}
-	for category, duration := range formatted.CategoryBreakdown {
-		category_rows = append(category_rows, []string{
-			category,
-			strings.TrimSuffix(duration.Round(time.Minute).String(), "0s"),
-		})
-	}
-	category_rows = append(category_rows, []string{
-		"total",
-		strings.TrimSuffix(formatted.Total.Round(time.Minute).String(), "0s"),
-	})
-
-	m.tables = []table.Model{
-		table.New(
-			table.WithColumns(columns),
-			table.WithRows(rows),
-			table.WithFocused(true),
-			table.WithHeight(7),
-		),
-		table.New(
-			table.WithColumns(category_columns),
-			table.WithRows(category_rows),
-			table.WithFocused(true),
-			table.WithHeight(7),
-		),
-	}
-	return nil
-
-}
 
 func (m *ReportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// TODO: Update the data object (Probably after we are using a bubbles.Table)
@@ -290,9 +212,12 @@ func (m *ReportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	default:
 		m.lastTick = time.Now()
 		if time.Since(m.lastRefresh) > m.refreshDuration {
-			if err := m.updateTables(); err != nil {
+			content, err := m.Refresh()
+			if err != nil {
+				// TODO: Handle this more elegantly
 				panic(fmt.Errorf(`refreshing: %w`, err))
 			}
+			m.content = content
 			m.lastRefresh = time.Now()
 		}
 		return m, nil
@@ -301,19 +226,21 @@ func (m *ReportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *ReportModel) View() string {
-	var views []string
+	var view string
 	if m.Debug {
-		views = append(views, fmt.Sprintf(" Last Tick: %s\n Last Refresh: %s\n Last Key: %s\n",
+		view += fmt.Sprintf(" Last Tick: %s\n Last Refresh: %s\n Last Key: %s\n",
 			m.lastTick.Format(time.DateTime),
 			m.lastRefresh.Format(time.DateTime),
 			m.lastKey,
-		))
+		)
 	}
 
-	for _, t := range m.tables {
-		views = append(views, t.View())
-	}
-	return "\n" + strings.Join(views, "\n")
+	return strings.Join(
+		[]string{
+			view,
+			m.content,
+		}, "\n",
+	)
 }
 
 // Log Model

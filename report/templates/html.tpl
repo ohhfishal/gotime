@@ -2,7 +2,6 @@
 <html>
 <head>
 <title>Daily Report</title>
-<meta http-equiv="refresh" content="10">
 <style>
   body {
     font-family: sans-serif;
