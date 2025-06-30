@@ -1,0 +1,5 @@
+package: serve
+generate:
+  std-http-server: true
+  models: true
+output: serve/gen.go

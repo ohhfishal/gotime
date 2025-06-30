@@ -1,0 +1,92 @@
+openapi: 3.0.4
+info:
+  title: Gotime API
+  description: Time keeping application.
+  version: v0.8.0
+
+servers:
+  - url: http://localhost:8080/
+    description: Default localhost configuration.
+
+paths:
+  /:
+    get:
+      tags:
+        - HTML Content
+      summary: Main HTML Page.
+      responses:
+        "200":
+          description: HTML page.
+          content:
+            text/html:
+              type: string
+  /api/v1/entry:
+    get:
+      tags:
+        - API v1
+      summary: Get all entries.
+      responses:
+        "200":
+          description: All entries
+          content:
+            application/json:
+              type: object
+            text/html:
+              type: string
+    post:
+      tags:
+        - API v1
+      summary: Create an entry
+      responses:
+        "200":
+          description: All entries
+          content:
+            application/json:
+              type: object
+            text/html:
+              type: string
+            # text/plain:
+            #   schema:
+            #     $ref: "#/components/responses/plain/OK"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              type: object
+            text/html:
+              type: string
+            # text/plain:
+            #   schema:
+            #     $ref: "#/components/responses/plain/InternalServerError"
+  /openapi:
+    get:
+      tags:
+        - Docs
+      summary: HTML page of the OpenAPI spec.
+      responses:
+        "200":
+          description: HTML page of the OpenAPI spec.
+          content:
+            text/html:
+              type: string
+            text/yaml:
+              type: string
+  /openapi.yaml:
+    get:
+      tags:
+        - Docs
+      summary: Return the raw OpenAPI yaml file.
+      responses:
+        "200":
+          description: Raw yaml.
+# components:
+#   responses:
+#     plain:
+#       OK:
+#         description: "OK"
+#         example: "OK"
+#         type: string
+#       InternalServerError:
+#         description: "Internal Server Error"
+#         example: "Intenral Server Error"
+#         type: string

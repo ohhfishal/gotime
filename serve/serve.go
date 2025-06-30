@@ -2,13 +2,18 @@ package serve
 
 import (
 	"context"
+	_ "embed"
 	"log/slog"
 	"net"
 	"net/http"
 	"time"
 
+	"github.com/flowchartsman/swaggerui"
 	"github.com/ohhfishal/gotime/entry"
 )
+
+//go:embed openapi.yaml
+var spec []byte
 
 type EntryHandler interface {
 	CreateEntry(entry.Entry) error
@@ -17,6 +22,12 @@ type EntryHandler interface {
 
 func Serve(ctx context.Context, logger *slog.Logger, handler EntryHandler, port string) error {
 	mux := http.NewServeMux()
+
+	mux.HandleFunc("GET /openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
+		w.Write(spec)
+	})
+	mux.Handle("GET /openapi/", http.StripPrefix("/openapi", swaggerui.Handler(spec)))
+
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 		page().Render(ctx, w)
 	})
