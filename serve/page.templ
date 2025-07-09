@@ -123,7 +123,7 @@ templ page() {
 
     <!-- TODO: Implement this with HTMX -->
     <div class="quick-add-bar">
-      <form class="quick-add-form" action="/add-entry" method="POST">
+      <form class="quick-add-form" action="/api/v1/entry" method="POST">
         <span class="label">Add Entry:</span>
         
         <input type="text" 
@@ -148,36 +148,37 @@ templ page() {
       </form>
     </div>
 
-    <h2>Schedule</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Category</th>
-          <th>Start</th>
-          <th>Length</th>
-          <th>Note</th>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
+    <div class="details">
+      <h2>Schedule</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Start</th>
+            <th>Length</th>
+            <th>Note</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
 
-    <h2>Summary</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Category</th>
-          <th>Length</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>Example</strong></td>
-          <td><strong>1h30m</strong></td>
-        </tr>
-      </tbody>
-    </table>
-
+      <h2>Summary</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Length</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Example</strong></td>
+            <td><strong>1h30m</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </body>
   </html>
 }

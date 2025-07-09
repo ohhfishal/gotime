@@ -3,6 +3,7 @@ package serve
 import (
 	"context"
 	_ "embed"
+	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
@@ -35,19 +36,26 @@ func Serve(ctx context.Context, logger *slog.Logger, handler EntryHandler, port 
 	mux.HandleFunc("GET /api/v1/entry", func(w http.ResponseWriter, r *http.Request) {
 		//   GET /api/v1/entry (Get's the HTML to render the Schedule)
 		//   TODO: Implement
+		w.WriteHeader(http.StatusNotImplemented)
+		fmt.Fprintf(w, http.StatusText(http.StatusNotImplemented))
 	})
 
 	mux.HandleFunc("POST /api/v1/entry", func(w http.ResponseWriter, r *http.Request) {
 		//   POST /api/v1/entry (Post's the entry)
 		//   TODO: Implement
+		w.WriteHeader(http.StatusNotImplemented)
+		fmt.Fprintf(w, http.StatusText(http.StatusNotImplemented))
 	})
 
 	// TODO: Have this return a nice page instead!
 	mux.Handle("/", http.NotFoundHandler())
 
+	var responseHandler http.Handler
+	responseHandler = NewLoggingMiddleware(logger, mux)
+
 	server := &http.Server{
 		Addr:         net.JoinHostPort("0.0.0.0", port),
-		Handler:      mux,
+		Handler:      responseHandler,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 5 * time.Second,
 	}
@@ -67,4 +75,34 @@ func Serve(ctx context.Context, logger *slog.Logger, handler EntryHandler, port 
 		return err
 	}
 	return nil
+}
+
+func NewLoggingMiddleware(logger *slog.Logger, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		wrapped := &responseWriter{
+			ResponseWriter: w,
+			statusCode:     http.StatusOK,
+		}
+
+		next.ServeHTTP(wrapped, r)
+		// TODO: Make better
+		logger.Info("replied to request",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"status", wrapped.statusCode,
+			"duration", time.Since(start).String(),
+		)
+	})
+}
+
+// TODO: Should write the message in here as well
+type responseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (rw *responseWriter) WriteHeader(code int) {
+	rw.statusCode = code
+	rw.ResponseWriter.WriteHeader(code)
 }
