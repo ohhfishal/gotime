@@ -37,6 +37,13 @@ paths:
       tags:
         - API v1
       summary: Create an entry
+      requestBody:
+        description: Entry to create
+        required: true
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/entry"
       responses:
         "200":
           description: All entries
@@ -56,8 +63,7 @@ paths:
             text/html:
               type: string
             # text/plain:
-            #   schema:
-            #     $ref: "#/components/responses/plain/InternalServerError"
+            #   schema: $ref: "#/components/responses/plain/InternalServerError"
   /openapi:
     get:
       tags:
@@ -79,14 +85,30 @@ paths:
       responses:
         "200":
           description: Raw yaml.
-# components:
-#   responses:
-#     plain:
-#       OK:
-#         description: "OK"
-#         example: "OK"
-#         type: string
-#       InternalServerError:
-#         description: "Internal Server Error"
-#         example: "Intenral Server Error"
-#         type: string
+components:
+  schemas:
+    entry:
+      type: object
+      properties:
+        time:
+          type: string
+          format: date-time
+        category:
+          type: string
+          example: "project"
+        note:
+          type: string
+          example: "Standup meeting"
+      required:
+        - time
+        - category
+  # responses:
+    # plain:
+    #   OK:
+    #     description: "OK"
+    #     example: "OK"
+    #     type: string
+    #   InternalServerError:
+    #     description: "Internal Server Error"
+    #     example: "Intenral Server Error"
+    #     type: string

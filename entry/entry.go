@@ -13,9 +13,9 @@ const NUM_RECORDS = 3
 const timeLayout = time.DateTime
 
 type Entry struct {
-	Time     time.Time
-	Category string // TODO: Make its own type with sub categories ex: "foo/bar"
-	Note     string
+	Time     time.Time `json:"time"`
+	Category string    `json:"category"` // TODO: Make its own type with sub categories ex: "foo/bar"
+	Note     string    `json:"note"`
 }
 
 func Filter(entries []Entry, start, end time.Time) []Entry {

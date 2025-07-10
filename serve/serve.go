@@ -3,7 +3,10 @@ package serve
 import (
 	"context"
 	_ "embed"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net"
 	"net/http"
@@ -33,19 +36,32 @@ func Serve(ctx context.Context, logger *slog.Logger, handler EntryHandler, port 
 		page().Render(ctx, w)
 	})
 
-	mux.HandleFunc("GET /api/v1/entry", func(w http.ResponseWriter, r *http.Request) {
-		//   GET /api/v1/entry (Get's the HTML to render the Schedule)
-		//   TODO: Implement
-		w.WriteHeader(http.StatusNotImplemented)
-		fmt.Fprintf(w, http.StatusText(http.StatusNotImplemented))
-	})
+	mux.Handle("GET /api/v1/entry", CustomHandler(func(w http.ResponseWriter, r *http.Request) http.Handler {
+		entries, err := handler.GetAllEntries()
+		if err != nil {
+			return StatusWithError(http.StatusInternalServerError, err)
+		}
+		// TODO: Filter entries based on some parameters
+		// TODO: Have this return HTML or JSON based on the header
+		return JSON(http.StatusOK, entries)
+	}))
 
-	mux.HandleFunc("POST /api/v1/entry", func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("POST /api/v1/entry", CustomHandler(func(w http.ResponseWriter, r *http.Request) http.Handler {
 		//   POST /api/v1/entry (Post's the entry)
 		//   TODO: Implement
-		w.WriteHeader(http.StatusNotImplemented)
-		fmt.Fprintf(w, http.StatusText(http.StatusNotImplemented))
-	})
+		entry, err := decode[entry.Entry](r)
+		if err != nil {
+			return StatusWithError(http.StatusBadRequest, err)
+		}
+
+		// TODO: Actually validate the entry!
+
+		if err := handler.CreateEntry(entry); err != nil {
+			return StatusWithError(http.StatusInternalServerError, err)
+		}
+		// TODO: Have this return HTML or JSON or text/plain based on the header
+		return Status(http.StatusOK)
+	}))
 
 	// TODO: Have this return a nice page instead!
 	mux.Handle("/", http.NotFoundHandler())
@@ -105,4 +121,58 @@ type responseWriter struct {
 func (rw *responseWriter) WriteHeader(code int) {
 	rw.statusCode = code
 	rw.ResponseWriter.WriteHeader(code)
+}
+
+type CustomHandler func(http.ResponseWriter, *http.Request) http.Handler
+
+func (handler CustomHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if next := handler(w, r); handler != nil {
+		next.ServeHTTP(w, r)
+		return
+	}
+}
+
+func JSON(status int, v any) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(status)
+		_ = json.NewEncoder(w).Encode(v)
+	})
+}
+
+// TODO: HTML functino similar to JSON, but have it use templ template?
+
+// func Text(status int, content any) http.Handler {
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//    w.Header().Set("Content-Type", "text/plain")
+// 		w.WriteHeader(status)
+// 		fmt.Fprint(w, content)
+// 	})
+// }
+
+func StatusWithError(status int, err error) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(status)
+		fmt.Fprintf(w, fmt.Sprintf("%s: %s", http.StatusText(status), err.Error()))
+	})
+}
+
+func Status(status int) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(status)
+		fmt.Fprintf(w, http.StatusText(status))
+	})
+}
+
+func decode[T any](r *http.Request) (T, error) {
+	var v T
+	err := json.NewDecoder(r.Body).Decode(&v)
+	if errors.Is(err, io.EOF) {
+		return v, errors.New("body is empty or incomplete")
+	}
+
+	if err != nil {
+		return v, fmt.Errorf("decode json: %w", err)
+	}
+	return v, nil
 }
