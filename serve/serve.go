@@ -3,16 +3,12 @@ package serve
 import (
 	"context"
 	_ "embed"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"io"
 	"log/slog"
-	"net"
 	"net/http"
 	"time"
 
 	"github.com/flowchartsman/swaggerui"
+	"github.com/gin-gonic/gin"
 	"github.com/ohhfishal/gotime/assets"
 	"github.com/ohhfishal/gotime/entry"
 )
@@ -26,55 +22,63 @@ type EntryHandler interface {
 }
 
 func Serve(ctx context.Context, logger *slog.Logger, handler EntryHandler, port string) error {
-	mux := http.NewServeMux()
+	// TODO: Have this be configurable? Or just use env? Can probably handle this in cmd/serve.go
+	// gin.SetMode(gin.DebugMode)
+	gin.SetMode(gin.ReleaseMode)
 
-	mux.HandleFunc("GET /openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(spec)
+	r := gin.New()
+	r.Use(loggingMiddleware(logger))
+	r.Use(gin.Recovery())
+
+	r.GET("/openapi.yaml", func(c *gin.Context) {
+		c.Data(http.StatusOK, "application/x-yaml", spec)
 	})
-	mux.Handle("GET /openapi/", http.StripPrefix("/openapi", swaggerui.Handler(spec)))
 
-	mux.Handle("GET /assets/", http.StripPrefix("/assets", http.FileServer(http.FS(assets.Assets))))
+	r.GET("/openapi/*filepath", gin.WrapH(http.StripPrefix("/openapi", swaggerui.Handler(spec))))
+	r.GET("/assets/*filepath", gin.WrapH(http.StripPrefix("/assets", http.FileServer(http.FS(assets.Assets)))))
 
-	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		page().Render(ctx, w)
+	r.GET("/", func(c *gin.Context) {
+		page().Render(ctx, c.Writer)
 	})
 
-	mux.Handle("GET /api/v1/entry", CustomHandler(func(w http.ResponseWriter, r *http.Request) http.Handler {
-		entries, err := handler.GetAllEntries()
-		if err != nil {
-			return StatusWithError(http.StatusInternalServerError, err)
-		}
-		// TODO: Filter entries based on some parameters
-		// TODO: Have this return HTML or JSON based on the header
-		return JSON(http.StatusOK, entries)
-	}))
+	api := r.Group("/api/v1")
+	{
+		api.GET("/entry", func(c *gin.Context) {
+			entries, err := handler.GetAllEntries()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			// TODO: Filter entries based on some parameters
+			// TODO: Have this return HTML or JSON based on the header
+			c.JSON(http.StatusOK, entries)
+		})
 
-	mux.Handle("POST /api/v1/entry", CustomHandler(func(w http.ResponseWriter, r *http.Request) http.Handler {
-		//   POST /api/v1/entry (Post's the entry)
-		//   TODO: Implement
-		entry, err := decode[entry.Entry](r)
-		if err != nil {
-			return StatusWithError(http.StatusBadRequest, err)
-		}
+		api.POST("/entry", func(c *gin.Context) {
+			var entryData entry.Entry
+			if err := c.ShouldBindJSON(&entryData); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
 
-		// TODO: Actually validate the entry!
+			// TODO: Actually validate the entry!
 
-		if err := handler.CreateEntry(entry); err != nil {
-			return StatusWithError(http.StatusInternalServerError, err)
-		}
-		// TODO: Have this return HTML or JSON or text/plain based on the header
-		return Status(http.StatusOK)
-	}))
+			if err := handler.CreateEntry(entryData); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			// TODO: Have this return HTML or JSON or text/plain based on the header
+			c.Status(http.StatusOK)
+		})
+	}
 
-	// TODO: Have this return a nice page instead!
-	mux.Handle("/", http.NotFoundHandler())
-
-	var responseHandler http.Handler
-	responseHandler = NewLoggingMiddleware(logger, mux)
+	r.NoRoute(func(c *gin.Context) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Not Found"})
+	})
 
 	server := &http.Server{
-		Addr:         net.JoinHostPort("0.0.0.0", port),
-		Handler:      responseHandler,
+		Addr:         ":" + port,
+		Handler:      r,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 5 * time.Second,
 	}
@@ -96,86 +100,15 @@ func Serve(ctx context.Context, logger *slog.Logger, handler EntryHandler, port 
 	return nil
 }
 
-func NewLoggingMiddleware(logger *slog.Logger, next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func loggingMiddleware(logger *slog.Logger) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		start := time.Now()
-		wrapped := &responseWriter{
-			ResponseWriter: w,
-			statusCode:     http.StatusOK,
-		}
-
-		next.ServeHTTP(wrapped, r)
-		// TODO: Make better
+		c.Next()
 		logger.Info("replied to request",
-			"method", r.Method,
-			"path", r.URL.Path,
-			"status", wrapped.statusCode,
+			"method", c.Request.Method,
+			"path", c.Request.URL.Path,
+			"status", c.Writer.Status(),
 			"duration", time.Since(start).String(),
 		)
-	})
-}
-
-// TODO: Should write the message in here as well
-type responseWriter struct {
-	http.ResponseWriter
-	statusCode int
-}
-
-func (rw *responseWriter) WriteHeader(code int) {
-	rw.statusCode = code
-	rw.ResponseWriter.WriteHeader(code)
-}
-
-type CustomHandler func(http.ResponseWriter, *http.Request) http.Handler
-
-func (handler CustomHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if next := handler(w, r); handler != nil {
-		next.ServeHTTP(w, r)
-		return
 	}
-}
-
-func JSON(status int, v any) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(status)
-		_ = json.NewEncoder(w).Encode(v)
-	})
-}
-
-// TODO: HTML functino similar to JSON, but have it use templ template?
-
-// func Text(status int, content any) http.Handler {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//    w.Header().Set("Content-Type", "text/plain")
-// 		w.WriteHeader(status)
-// 		fmt.Fprint(w, content)
-// 	})
-// }
-
-func StatusWithError(status int, err error) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(status)
-		fmt.Fprintf(w, fmt.Sprintf("%s: %s", http.StatusText(status), err.Error()))
-	})
-}
-
-func Status(status int) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(status)
-		fmt.Fprintf(w, http.StatusText(status))
-	})
-}
-
-func decode[T any](r *http.Request) (T, error) {
-	var v T
-	err := json.NewDecoder(r.Body).Decode(&v)
-	if errors.Is(err, io.EOF) {
-		return v, errors.New("body is empty or incomplete")
-	}
-
-	if err != nil {
-		return v, fmt.Errorf("decode json: %w", err)
-	}
-	return v, nil
 }
