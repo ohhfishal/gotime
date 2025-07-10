@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/flowchartsman/swaggerui"
+	"github.com/ohhfishal/gotime/assets"
 	"github.com/ohhfishal/gotime/entry"
 )
 
@@ -31,6 +32,8 @@ func Serve(ctx context.Context, logger *slog.Logger, handler EntryHandler, port 
 		w.Write(spec)
 	})
 	mux.Handle("GET /openapi/", http.StripPrefix("/openapi", swaggerui.Handler(spec)))
+
+	mux.Handle("GET /assets/", http.StripPrefix("/assets", http.FileServer(http.FS(assets.Assets))))
 
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 		page().Render(ctx, w)
