@@ -1,5 +1,28 @@
 package serve
 
+//import (
+//	"github.com/ohhfishal/gotime/entry"
+//)
+
+// TODO: Add the entry here
+templ ScheduleRow() {
+  <tr>
+    <td>Example Cateogry</td>
+    <td>Start</td>
+    <td>Length</td>
+    <td>Note</td>
+  </tr>
+}
+
+// TODO: Add the metadata here
+templ SummaryRow() {
+  <tr>
+    <td>Example Cateogry</td>
+    <td>Length</td>
+  </tr>
+}
+
+// TODO: Add the metadata here
 templ page() {
   <!DOCTYPE html>
   <html>
@@ -160,6 +183,7 @@ templ page() {
           </tr>
         </thead>
         <tbody>
+          @ScheduleRow()
         </tbody>
       </table>
 
@@ -172,10 +196,7 @@ templ page() {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td><strong>Example</strong></td>
-            <td><strong>1h30m</strong></td>
-          </tr>
+          @SummaryRow()
         </tbody>
       </table>
     </div>
