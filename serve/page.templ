@@ -126,17 +126,32 @@ templ page() {
       }
     }
   </style>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <script>
-    function setCurrentTime() {
-      const now = new Date();
-      const timeInput = document.getElementById('timeInput');
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      timeInput.value = `${hours}:${minutes}`;
-    }
-    
-    document.addEventListener('DOMContentLoaded', function() {
-      setCurrentTime();
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('addEntryForm', () => {
+        return {
+          request: {
+            category:	"",
+            time:	"",
+            note:	"",
+          },
+          submit() {
+            // TODO: Validate and trigger an htmx submit
+          },
+          async post() {
+            return await (
+              await fetch("/api/v1/entry", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(this.request),
+              })
+            ).json();
+          },
+        }
+      });
     });
   </script>
   </head>
@@ -146,10 +161,15 @@ templ page() {
 
     <!-- TODO: Implement this with HTMX -->
     <div class="quick-add-bar">
-      <form class="quick-add-form" action="/api/v1/entry" method="POST">
+      <form class="quick-add-form" 
+            x-on:submit.prevent="post"
+            x-data="addEntryForm" 
+            action="/api/v1/entry" 
+            method="POST">
         <span class="label">Add Entry:</span>
         
         <input type="text" 
+              x-model="request.category"
               name="category" 
               class="category-input"
               placeholder="Category (e.g., Work, Break, Meeting...)"
@@ -157,12 +177,14 @@ templ page() {
               title="Enter the activity category">
         
         <input type="time" 
+              x-model="request.time"
               id="timeInput"
               name="time" 
               title="Start time (edit if adding past entry)"
-              required>
+              >
         
         <input type="text" 
+              x-model="request.note"
               name="note" 
               placeholder="Add a note..."
               title="Optional note or description">
