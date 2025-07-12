@@ -2,6 +2,7 @@ package entry
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -16,6 +17,31 @@ type Entry struct {
 	Time     time.Time `json:"time"`
 	Category string    `json:"category"` // TODO: Make its own type with sub categories ex: "foo/bar"
 	Note     string    `json:"note"`
+}
+
+func (entry *Entry) UnmarshalJSON(b []byte) error {
+	var fields map[string]string
+	if err := json.Unmarshal(b, &fields); err != nil {
+		return fmt.Errorf(`invalid json: %w`, err)
+	}
+
+	if timeString, ok := fields[`time`]; ok {
+		format := time.DateTime
+		if t, err := time.Parse(format, timeString); err != nil {
+			return fmt.Errorf(`invalid time: "%s" (format="%s")`, timeString, format)
+		} else {
+			entry.Time = t
+		}
+	}
+
+	if category, ok := fields[`category`]; ok {
+		entry.Category = category
+	}
+
+	if note, ok := fields[`note`]; ok {
+		entry.Note = note
+	}
+	return nil
 }
 
 func Filter(entries []Entry, start, end time.Time) []Entry {

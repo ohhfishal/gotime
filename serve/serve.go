@@ -30,6 +30,7 @@ func Serve(ctx context.Context, logger *slog.Logger, handler EntryHandler, port 
 	r.Use(loggingMiddleware(logger))
 	r.Use(gin.Recovery())
 
+	// TODO: Add this to assets and redirect
 	r.GET("/openapi.yaml", func(c *gin.Context) {
 		c.Data(http.StatusOK, "application/x-yaml", spec)
 	})
