@@ -3,6 +3,12 @@
 # Change Log
 
 ## [Upcoming] - 2025-XX-XX
+### **Breaking** ⚠️
+- Remove `tui` in favor of `serve`
+
+### Added
+- `serve` core functionality
+
 
 ## [v0.8.0] - 2025-06-26
 ### Added
