@@ -2,11 +2,23 @@ package entry
 
 import (
 	"fmt"
+	"slices"
 	"time"
 )
 
 type FileHandler struct {
 	filename string
+}
+
+type Summary struct {
+	Schedule []ScheduleEntry
+	// TODO: Include cagtegory map
+	Total time.Duration
+}
+
+type ScheduleEntry struct {
+	Entry    Entry
+	Duration time.Duration
 }
 
 type Option func([]Entry) ([]Entry, error)
@@ -15,6 +27,34 @@ func NewFileHandler(filename string) (*FileHandler, error) {
 	return &FileHandler{
 		filename: filename,
 	}, nil
+}
+
+func Summarize(entries []Entry) Summary {
+	var summary Summary
+	if len(entries) == 0 {
+		return summary
+	}
+
+	entries = append(
+		entries,
+		Entry{Time: time.Now()},
+	)
+
+	for i, entry := range entries[:len(entries)-1] {
+		entry := ScheduleEntry{
+			Entry:    entry,
+			Duration: entries[i+1].Time.Sub(entry.Time),
+		}
+		// TODO: Implement here instead
+		// if _, ok := args.CategoryBreakdown[entry.Category]; ok {
+		// 	args.CategoryBreakdown[entry.Category] += tuple.Duration
+		// } else {
+		// 	args.CategoryBreakdown[entry.Category] = tuple.Duration
+		// }
+		summary.Schedule = append(summary.Schedule, entry)
+		summary.Total += entry.Duration
+	}
+	return summary
 }
 
 func (handler *FileHandler) CreateEntry(newEntry Entry) error {
@@ -37,6 +77,7 @@ func (handler *FileHandler) GetAllEntries(options ...Option) ([]Entry, error) {
 			return nil, fmt.Errorf(`filtering entries: %w`, err)
 		}
 	}
+	slices.SortFunc(entries, Compare)
 	return entries, nil
 }
 
@@ -49,12 +90,6 @@ func Today() Option {
 	)
 	tomorrow := today.Add(24 * time.Hour)
 	return func(entries []Entry) ([]Entry, error) {
-		filtered := []Entry{}
-		for _, entry := range entries {
-			if entry.Time.After(today) && entry.Time.Before(tomorrow) {
-				filtered = append(filtered, entry)
-			}
-		}
-		return filtered, nil
+		return Filter(entries, today, tomorrow), nil
 	}
 }

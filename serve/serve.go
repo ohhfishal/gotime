@@ -45,28 +45,38 @@ func Serve(ctx context.Context, logger *slog.Logger, handler EntryHandler, port 
 
 	r.GET("/openapi/*filepath", gin.WrapH(http.StripPrefix("/openapi", swaggerui.Handler(spec))))
 	r.GET("/assets/*filepath", gin.WrapH(http.StripPrefix("/assets", http.FileServer(http.FS(assets.Assets)))))
+	r.GET("/favicon.ico", func(c *gin.Context) {
+		http.ServeFileFS(c.Writer, c.Request, assets.Assets, "img/favicon.ico")
+	})
 
 	r.GET("/", func(c *gin.Context) {
 		// TODO: Have this be handled via HTMX and GET endpoint
 		entries, err := handler.GetAllEntries(entry.Today())
 		if err != nil {
+			// TODO: Make a template for this
 			c.HTML(http.StatusInternalServerError, errorHTML, gin.H{"error": err.Error()})
 			return
 		}
-		MainPage(entries).Render(ctx, c.Writer)
+		MainPage(
+			entry.Summarize(entries),
+		).Render(c, c.Writer)
 	})
 
 	api := r.Group("/api/v1")
 	{
 		api.GET("/entry", func(c *gin.Context) {
-			entries, err := handler.GetAllEntries()
+			entries, err := handler.GetAllEntries(entry.Today())
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				c.HTML(http.StatusInternalServerError, errorHTML, gin.H{"error": err.Error()})
 				return
 			}
+			Details(
+				entry.Summarize(entries),
+			).Render(c, c.Writer)
+
 			// TODO: Filter entries based on some parameters
 			// TODO: Have this return HTML or JSON based on the header
-			c.JSON(http.StatusOK, entries)
+			// c.JSON(http.StatusOK, entries)
 		})
 
 		api.POST("/entry", func(c *gin.Context) {
