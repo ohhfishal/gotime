@@ -15,7 +15,7 @@ import (
 )
 
 // TODO: Transfer away from a cdn and deliver ourself
-func IncludeAlpine() templ.Component {
+func Include() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -36,36 +36,7 @@ func IncludeAlpine() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script defer src=\"https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js\"></script>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		return nil
-	})
-}
-
-func IncludeHTMX() templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
-		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var2 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var2 == nil {
-			templ_7745c5c3_Var2 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<script src=\"https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js\" integrity=\"sha384-Akqfrbj/HpNVo8k11SXBb6TlBWmXXlYQrCSqEWmyKJe+hDm3Z/B2WVG4smwBkRVm\" crossorigin=\"anonymous\"></script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script src=\"https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js\" integrity=\"sha384-Akqfrbj/HpNVo8k11SXBb6TlBWmXXlYQrCSqEWmyKJe+hDm3Z/B2WVG4smwBkRVm\" crossorigin=\"anonymous\"></script><script defer src=\"https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js\"></script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -89,12 +60,12 @@ func Loader() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var3 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var3 == nil {
-			templ_7745c5c3_Var3 = templ.NopComponent
+		templ_7745c5c3_Var2 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var2 == nil {
+			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"loader\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"loader\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -118,20 +89,16 @@ func MainPage(summary entry.Summary) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var4 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var4 == nil {
-			templ_7745c5c3_Var4 = templ.NopComponent
+		templ_7745c5c3_Var3 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var3 == nil {
+			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<!doctype html><html><head><title>Daily Report</title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<!doctype html><html><head><title>Daily Report</title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = IncludeAlpine().Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = IncludeHTMX().Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Include().Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -143,20 +110,20 @@ func MainPage(summary entry.Summary) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</head><body><!-- TODO: Have this select the date to view? --><h1>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</head><body><!-- TODO: Have this select the date to view? --><h1>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(time.Now().Format(time.DateOnly))
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(time.Now().Format(time.DateOnly))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 35, Col: 42}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 31, Col: 42}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</h1><!-- TODO: Implement this with HTMX to refresh next div--><div class=\"quick-add-bar\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</h1><!-- TODO: Implement this with HTMX to refresh next div--><div class=\"quick-add-bar\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -164,7 +131,7 @@ func MainPage(summary entry.Summary) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div><div hx-get=\"/api/v1/entry\" hx-trigger=\"every 1m,entry:created from:document\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><div hx-get=\"/api/v1/entry\" hx-trigger=\"every 1m,entry:created from:document\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -172,7 +139,7 @@ func MainPage(summary entry.Summary) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -196,60 +163,60 @@ func QuickAddScript() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var6 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var6 == nil {
-			templ_7745c5c3_Var6 = templ.NopComponent
+		templ_7745c5c3_Var5 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var5 == nil {
+			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<script>\n    document.addEventListener('alpine:init', () => {\n      Alpine.data('entryForm', () => {\n        return {\n          request: {\n            category:\t\"\",\n            date: \"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<script>\n    document.addEventListener('alpine:init', () => {\n      Alpine.data('entryForm', () => {\n        return {\n          request: {\n            category:\t\"\",\n            date: \"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var7, templ_7745c5c3_Err := templruntime.ScriptContentInsideStringLiteral(time.Now().Format(time.DateOnly))
+		templ_7745c5c3_Var6, templ_7745c5c3_Err := templruntime.ScriptContentInsideStringLiteral(time.Now().Format(time.DateOnly))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 57, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 53, Col: 54}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\",\n            time:\t\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Var7, templ_7745c5c3_Err := templruntime.ScriptContentInsideStringLiteral(time.Now().Format(`15:04`))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 54, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\",\n            time:\t\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\",\n            note:\t\"\",\n          },\n          submit() {\n            // TODO: Validate and trigger an htmx submit\n          },\n          async post() {\n            // TODO: Handle errors and validation\n            const response = await fetch(\"/api/v1/entry\", {\n              method: \"POST\",\n              headers: {\n                \"Content-Type\": \"application/json\",\n              },\n              body: JSON.stringify({\n                category:\tthis.request.category,\n                time:\tthis.request.date + \" \" + this.request.time + \":00\",\n                note:\tthis.request.note,\n              }),\n            }).catch(error => {\n              console.error('Error posting entry:', error);\n              throw error;\n            });\n            \n            // TODO: Resolve bad case\n            if (response.ok) {\n              document.dispatchEvent(new CustomEvent('entry:created'));\n              \n              this.request = {\n                category: \"\",\n                date: \"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var8, templ_7745c5c3_Err := templruntime.ScriptContentInsideStringLiteral(time.Now().Format(`15:04`))
+		templ_7745c5c3_Var8, templ_7745c5c3_Err := templruntime.ScriptContentInsideStringLiteral(time.Now().Format(time.DateOnly))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 58, Col: 48}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 83, Col: 58}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\",\n            note:\t\"\",\n          },\n          submit() {\n            // TODO: Validate and trigger an htmx submit\n          },\n          async post() {\n            // TODO: Handle errors and validation\n            const response = await fetch(\"/api/v1/entry\", {\n              method: \"POST\",\n              headers: {\n                \"Content-Type\": \"application/json\",\n              },\n              body: JSON.stringify({\n                category:\tthis.request.category,\n                time:\tthis.request.date + \" \" + this.request.time + \":00\",\n                note:\tthis.request.note,\n              }),\n            }).catch(error => {\n              console.error('Error posting entry:', error);\n              throw error;\n            });\n            \n            // TODO: Resolve bad case\n            if (response.ok) {\n              document.dispatchEvent(new CustomEvent('entry:created'));\n              \n              this.request = {\n                category: \"\",\n                date: \"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\",\n                time: \"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var9, templ_7745c5c3_Err := templruntime.ScriptContentInsideStringLiteral(time.Now().Format(time.DateOnly))
+		templ_7745c5c3_Var9, templ_7745c5c3_Err := templruntime.ScriptContentInsideStringLiteral(time.Now().Format(`15:04`))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 87, Col: 58}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 84, Col: 52}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\",\n                time: \"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Var10, templ_7745c5c3_Err := templruntime.ScriptContentInsideStringLiteral(time.Now().Format(`15:04`))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 88, Col: 52}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\",\n                note: \"\",\n              };\n            }\n          },\n        }\n      });\n    });\n  </script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\",\n                note: \"\",\n              };\n            }\n          },\n        }\n      });\n    });\n  </script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -273,12 +240,12 @@ func QuickAddForm() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var11 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var11 == nil {
-			templ_7745c5c3_Var11 = templ.NopComponent
+		templ_7745c5c3_Var10 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var10 == nil {
+			templ_7745c5c3_Var10 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<form class=\"quick-add-form\" x-on:submit.prevent=\"post\" x-data=\"entryForm\"><span class=\"label\">Add Entry:</span> <input type=\"text\" x-model=\"request.category\" class=\"category-input\" placeholder=\"Category (e.g., work, out...)\" required> <input type=\"date\" x-model=\"request.date\" readonly title=\"Changing date is currently not supported.\" required> <input type=\"time\" x-model=\"request.time\" required> <input type=\"text\" x-model=\"request.note\" placeholder=\"Add a note... (Optional)\"> <button type=\"submit\" class=\"add-btn\">Add Entry</button></form>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<form class=\"quick-add-form\" x-on:submit.prevent=\"post\" x-data=\"entryForm\"><span class=\"label\">Add Entry:</span> <input type=\"text\" x-model=\"request.category\" class=\"category-input\" placeholder=\"Category (e.g., work, out...)\" required> <input type=\"date\" x-model=\"request.date\" readonly title=\"Changing date is currently not supported.\" required> <input type=\"time\" x-model=\"request.time\" required> <input type=\"text\" x-model=\"request.note\" placeholder=\"Add a note... (Optional)\"> <button type=\"submit\" class=\"add-btn\">Add Entry</button></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -302,24 +269,37 @@ func Details(summary entry.Summary) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var12 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var12 == nil {
-			templ_7745c5c3_Var12 = templ.NopComponent
+		templ_7745c5c3_Var11 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var11 == nil {
+			templ_7745c5c3_Var11 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<h2>Schedule</h2><table><thead><tr><th>Category</th><th>Start</th><th>Length</th><th>Note</th></tr></thead> <tbody>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<h2>Schedule</h2><table><thead><tr><th>Category</th><th>Start</th><th>Length</th><th>Note</th></tr></thead> <tbody>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for _, summaryRow := range summary.Schedule {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "  <tr><td>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, " <tr><td>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var12 string
+			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(summaryRow.Entry.Category)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 142, Col: 39}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</td><td>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var13 string
-			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(summaryRow.Entry.Category)
+			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(summaryRow.Entry.Time.Format(`15:04`))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 147, Col: 39}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 143, Col: 51}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -330,9 +310,9 @@ func Details(summary entry.Summary) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var14 string
-			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(summaryRow.Entry.Time.Format(`15:04`))
+			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(strings.TrimSuffix(summaryRow.Duration.Round(time.Minute).String(), `0s`))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 148, Col: 51}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 144, Col: 87}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -343,33 +323,20 @@ func Details(summary entry.Summary) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var15 string
-			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(strings.TrimSuffix(summaryRow.Duration.Round(time.Minute).String(), `0s`))
+			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(summaryRow.Entry.Note)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 149, Col: 87}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 145, Col: 35}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</td><td>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var16 string
-			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(summaryRow.Entry.Note)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 150, Col: 35}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</td></tr>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</td></tr>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</tbody></table><h2>Summary</h2><table><thead><tr><th>Category</th><th>Length</th></tr></thead> <tbody>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</tbody></table><h2>Summary</h2><table><thead><tr><th>Category</th><th>Length</th></tr></thead> <tbody>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -377,7 +344,7 @@ func Details(summary entry.Summary) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</tbody></table>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</tbody></table>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -402,12 +369,12 @@ func SummaryRow() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var17 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var17 == nil {
-			templ_7745c5c3_Var17 = templ.NopComponent
+		templ_7745c5c3_Var16 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var16 == nil {
+			templ_7745c5c3_Var16 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<tr><td>Example Cateogry</td><td>Length</td></tr>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<tr><td>Example Cateogry</td><td>Length</td></tr>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -431,12 +398,12 @@ func Style() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var18 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var18 == nil {
-			templ_7745c5c3_Var18 = templ.NopComponent
+		templ_7745c5c3_Var17 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var17 == nil {
+			templ_7745c5c3_Var17 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<style>\n    body {\n      font-family: sans-serif;\n      max-width: 1200px;\n      margin: 0 auto;\n      padding: 20px;\n    }\n\n    /* HTML: <div class=\"loader\"></div> */\n    .loader {\n      width: fit-content;\n      font-weight: bold;\n      font-family: monospace;\n      font-size: 30px;\n      clip-path: inset(0 3ch 0 0);\n      animation: l4 1s steps(4) infinite;\n    }\n    .loader:before {\n      content:\"Loading...\"\n    }\n    @keyframes l4 {to{clip-path: inset(0 -1ch 0 0)}}\n      \n    .quick-add-bar {\n      background-color: #f8f9fa;\n      padding: 15px;\n      border-radius: 8px;\n      margin-bottom: 20px;\n      border: 1px solid #e9ecef;\n    }\n    \n    .quick-add-form {\n      display: flex;\n      gap: 10px;\n      align-items: center;\n      flex-wrap: wrap;\n    }\n    \n    .quick-add-form input, .quick-add-form select {\n      padding: 8px;\n      border: 1px solid #ddd;\n      border-radius: 4px;\n      font-size: 14px;\n    }\n    \n    .quick-add-form input[type=\"text\"].category-input {\n      min-width: 200px;\n    }\n    \n    .quick-add-form input[type=\"time\"] {\n      width: 120px;\n    }\n    \n    .category-input {\n      min-width: 200px;\n    }\n    \n    .quick-add-form input[type=\"text\"]:not(.category-input) {\n      flex: 1;\n      min-width: 150px;\n    }\n    \n    .add-btn {\n      background-color: #4CAF50;\n      color: white;\n      border: none;\n      padding: 8px 16px;\n      border-radius: 4px;\n      cursor: pointer;\n      font-size: 14px;\n      transition: background-color 0.3s;\n    }\n    \n    .add-btn:hover {\n      background-color: #45a049;\n    }\n    \n    table {\n      border-collapse: collapse;\n      width: 100%;\n      margin-bottom: 1em;\n    }\n    \n    th, td {\n      border: 1px solid #ddd;\n      padding: 8px;\n      text-align: left;\n    }\n    \n    th {\n      background-color: #f2f2f2;\n    }\n    \n    .label {\n      font-weight: bold;\n      color: #555;\n      white-space: nowrap;\n    }\n    \n    @media (max-width: 768px) {\n      .quick-add-form {\n        flex-direction: column;\n        align-items: stretch;\n      }\n      \n      .quick-add-form input,\n      .quick-add-form select {\n        width: 100%;\n        box-sizing: border-box;\n      }\n    }\n  </style>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<style>\n    body {\n      font-family: sans-serif;\n      max-width: 1200px;\n      margin: 0 auto;\n      padding: 20px;\n    }\n\n    /* HTML: <div class=\"loader\"></div> */\n    .loader {\n      width: fit-content;\n      font-weight: bold;\n      font-family: monospace;\n      font-size: 30px;\n      clip-path: inset(0 3ch 0 0);\n      animation: l4 1s steps(4) infinite;\n    }\n    .loader:before {\n      content:\"Loading...\"\n    }\n    @keyframes l4 {to{clip-path: inset(0 -1ch 0 0)}}\n      \n    .quick-add-bar {\n      background-color: #f8f9fa;\n      padding: 15px;\n      border-radius: 8px;\n      margin-bottom: 20px;\n      border: 1px solid #e9ecef;\n    }\n    \n    .quick-add-form {\n      display: flex;\n      gap: 10px;\n      align-items: center;\n      flex-wrap: wrap;\n    }\n    \n    .quick-add-form input, .quick-add-form select {\n      padding: 8px;\n      border: 1px solid #ddd;\n      border-radius: 4px;\n      font-size: 14px;\n    }\n    \n    .quick-add-form input[type=\"text\"].category-input {\n      min-width: 200px;\n    }\n    \n    .quick-add-form input[type=\"time\"] {\n      width: 120px;\n    }\n    \n    .category-input {\n      min-width: 200px;\n    }\n    \n    .quick-add-form input[type=\"text\"]:not(.category-input) {\n      flex: 1;\n      min-width: 150px;\n    }\n    \n    .add-btn {\n      background-color: #4CAF50;\n      color: white;\n      border: none;\n      padding: 8px 16px;\n      border-radius: 4px;\n      cursor: pointer;\n      font-size: 14px;\n      transition: background-color 0.3s;\n    }\n    \n    .add-btn:hover {\n      background-color: #45a049;\n    }\n    \n    table {\n      border-collapse: collapse;\n      width: 100%;\n      margin-bottom: 1em;\n    }\n    \n    th, td {\n      border: 1px solid #ddd;\n      padding: 8px;\n      text-align: left;\n    }\n    \n    th {\n      background-color: #f2f2f2;\n    }\n    \n    .label {\n      font-weight: bold;\n      color: #555;\n      white-space: nowrap;\n    }\n    \n    @media (max-width: 768px) {\n      .quick-add-form {\n        flex-direction: column;\n        align-items: stretch;\n      }\n      \n      .quick-add-form input,\n      .quick-add-form select {\n        width: 100%;\n        box-sizing: border-box;\n      }\n    }\n  </style>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
