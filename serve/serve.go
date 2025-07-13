@@ -18,8 +18,16 @@ var spec []byte
 
 type EntryHandler interface {
 	CreateEntry(entry.Entry) error
-	GetAllEntries() ([]entry.Entry, error)
+	GetAllEntries(...entry.Option) ([]entry.Entry, error)
 }
+
+const errorHTML = `
+<html>
+  <h1>
+    {{ .error }}
+  </h1>
+</html>
+`
 
 func Serve(ctx context.Context, logger *slog.Logger, handler EntryHandler, port string) error {
 	// TODO: Have this be configurable? Or just use env? Can probably handle this in cmd/serve.go
@@ -39,7 +47,13 @@ func Serve(ctx context.Context, logger *slog.Logger, handler EntryHandler, port 
 	r.GET("/assets/*filepath", gin.WrapH(http.StripPrefix("/assets", http.FileServer(http.FS(assets.Assets)))))
 
 	r.GET("/", func(c *gin.Context) {
-		page().Render(ctx, c.Writer)
+		// TODO: Have this be handled via HTMX and GET endpoint
+		entries, err := handler.GetAllEntries(entry.Today())
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, errorHTML, gin.H{"error": err.Error()})
+			return
+		}
+		MainPage(entries).Render(ctx, c.Writer)
 	})
 
 	api := r.Group("/api/v1")

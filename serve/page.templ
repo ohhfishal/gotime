@@ -2,15 +2,14 @@ package serve
 
 import (
   "time"
+	"github.com/ohhfishal/gotime/entry"
 )
 
 templ IncludeAlpine() {
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 }
 
-// TODO: Make this take in the entries from the api
-// TODO: Also change to MainPage(...) or Page(...)
-templ page() {
+templ MainPage(entries []entry.Entry) {
   <!DOCTYPE html>
   <html>
   <head>
@@ -31,7 +30,7 @@ templ page() {
     </div>
 
     <div class="details">
-      @Details()
+      @Details(entries)
     </div>
   </body>
   </html>
@@ -103,7 +102,7 @@ templ QuickAddForm() {
 }
 
 
-templ Details() {
+templ Details(entries []entry.Entry) {
   <h2>Schedule</h2>
   <table>
     <thead>
@@ -115,7 +114,9 @@ templ Details() {
       </tr>
     </thead>
     <tbody>
-      @ScheduleRow()
+    for _, entry := range entries {
+      @ScheduleRow(entry)
+    }
     </tbody>
   </table>
 
@@ -133,13 +134,14 @@ templ Details() {
   </table>
 }
 
-// TODO: Add the entry here
-templ ScheduleRow() {
+// TODO: Improve formatting (tailwind css?)
+// TODO: Get the length metadata populdated here
+templ ScheduleRow(entry entry.Entry) {
   <tr>
-    <td>Example Cateogry</td>
-    <td>Start</td>
-    <td>Length</td>
-    <td>Note</td>
+    <td>{ entry.Category }</td>
+    <td>{ entry.Time.Format(`15:04`) }</td>
+    <td></td>
+    <td>{ entry.Note }</td>
   </tr>
 }
 

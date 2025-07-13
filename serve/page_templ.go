@@ -9,6 +9,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"github.com/ohhfishal/gotime/entry"
 	"time"
 )
 
@@ -41,9 +42,7 @@ func IncludeAlpine() templ.Component {
 	})
 }
 
-// TODO: Make this take in the entries from the api
-// TODO: Also change to MainPage(...) or Page(...)
-func page() templ.Component {
+func MainPage(entries []entry.Entry) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -87,7 +86,7 @@ func page() templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(time.Now().Format(time.DateOnly))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 26, Col: 42}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 25, Col: 42}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -105,7 +104,7 @@ func page() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Details().Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Details(entries).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -144,7 +143,7 @@ func QuickAddScript() templ.Component {
 		}
 		templ_7745c5c3_Var5, templ_7745c5c3_Err := templruntime.ScriptContentInsideStringLiteral(time.Now().Format(time.DateOnly))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 47, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 46, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 		if templ_7745c5c3_Err != nil {
@@ -156,7 +155,7 @@ func QuickAddScript() templ.Component {
 		}
 		templ_7745c5c3_Var6, templ_7745c5c3_Err := templruntime.ScriptContentInsideStringLiteral(time.Now().Format(`15:04`))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 48, Col: 48}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 47, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
 		if templ_7745c5c3_Err != nil {
@@ -199,7 +198,7 @@ func QuickAddForm() templ.Component {
 	})
 }
 
-func Details() templ.Component {
+func Details(entries []entry.Entry) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -224,9 +223,11 @@ func Details() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = ScheduleRow().Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
+		for _, entry := range entries {
+			templ_7745c5c3_Err = ScheduleRow(entry).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</tbody></table><h2>Summary</h2><table><thead><tr><th>Category</th><th>Length</th></tr></thead> <tbody>")
 		if templ_7745c5c3_Err != nil {
@@ -245,7 +246,7 @@ func Details() templ.Component {
 }
 
 // TODO: Add the entry here
-func ScheduleRow() templ.Component {
+func ScheduleRow(entry entry.Entry) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -266,7 +267,46 @@ func ScheduleRow() templ.Component {
 			templ_7745c5c3_Var9 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<tr><td>Example Cateogry</td><td>Start</td><td>Length</td><td>Note</td></tr>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<tr><td>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var10 string
+		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(entry.Category)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 140, Col: 24}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</td><td>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var11 string
+		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(entry.Time.Format(`15:04`))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 141, Col: 36}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</td><td></td><td>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var12 string
+		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(entry.Note)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `serve/page.templ`, Line: 143, Col: 20}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</td></tr>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -291,12 +331,12 @@ func SummaryRow() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var10 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var10 == nil {
-			templ_7745c5c3_Var10 = templ.NopComponent
+		templ_7745c5c3_Var13 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var13 == nil {
+			templ_7745c5c3_Var13 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<tr><td>Example Cateogry</td><td>Length</td></tr>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<tr><td>Example Cateogry</td><td>Length</td></tr>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -320,12 +360,12 @@ func Style() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var11 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var11 == nil {
-			templ_7745c5c3_Var11 = templ.NopComponent
+		templ_7745c5c3_Var14 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var14 == nil {
+			templ_7745c5c3_Var14 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<style>\n    body {\n      font-family: sans-serif;\n      max-width: 1200px;\n      margin: 0 auto;\n      padding: 20px;\n    }\n    \n    .quick-add-bar {\n      background-color: #f8f9fa;\n      padding: 15px;\n      border-radius: 8px;\n      margin-bottom: 20px;\n      border: 1px solid #e9ecef;\n    }\n    \n    .quick-add-form {\n      display: flex;\n      gap: 10px;\n      align-items: center;\n      flex-wrap: wrap;\n    }\n    \n    .quick-add-form input, .quick-add-form select {\n      padding: 8px;\n      border: 1px solid #ddd;\n      border-radius: 4px;\n      font-size: 14px;\n    }\n    \n    .quick-add-form input[type=\"text\"].category-input {\n      min-width: 200px;\n    }\n    \n    .quick-add-form input[type=\"time\"] {\n      width: 120px;\n    }\n    \n    .category-input {\n      min-width: 200px;\n    }\n    \n    .quick-add-form input[type=\"text\"]:not(.category-input) {\n      flex: 1;\n      min-width: 150px;\n    }\n    \n    .add-btn {\n      background-color: #4CAF50;\n      color: white;\n      border: none;\n      padding: 8px 16px;\n      border-radius: 4px;\n      cursor: pointer;\n      font-size: 14px;\n      transition: background-color 0.3s;\n    }\n    \n    .add-btn:hover {\n      background-color: #45a049;\n    }\n    \n    table {\n      border-collapse: collapse;\n      width: 100%;\n      margin-bottom: 1em;\n    }\n    \n    th, td {\n      border: 1px solid #ddd;\n      padding: 8px;\n      text-align: left;\n    }\n    \n    th {\n      background-color: #f2f2f2;\n    }\n    \n    .label {\n      font-weight: bold;\n      color: #555;\n      white-space: nowrap;\n    }\n    \n    @media (max-width: 768px) {\n      .quick-add-form {\n        flex-direction: column;\n        align-items: stretch;\n      }\n      \n      .quick-add-form input,\n      .quick-add-form select {\n        width: 100%;\n        box-sizing: border-box;\n      }\n    }\n  </style>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<style>\n    body {\n      font-family: sans-serif;\n      max-width: 1200px;\n      margin: 0 auto;\n      padding: 20px;\n    }\n    \n    .quick-add-bar {\n      background-color: #f8f9fa;\n      padding: 15px;\n      border-radius: 8px;\n      margin-bottom: 20px;\n      border: 1px solid #e9ecef;\n    }\n    \n    .quick-add-form {\n      display: flex;\n      gap: 10px;\n      align-items: center;\n      flex-wrap: wrap;\n    }\n    \n    .quick-add-form input, .quick-add-form select {\n      padding: 8px;\n      border: 1px solid #ddd;\n      border-radius: 4px;\n      font-size: 14px;\n    }\n    \n    .quick-add-form input[type=\"text\"].category-input {\n      min-width: 200px;\n    }\n    \n    .quick-add-form input[type=\"time\"] {\n      width: 120px;\n    }\n    \n    .category-input {\n      min-width: 200px;\n    }\n    \n    .quick-add-form input[type=\"text\"]:not(.category-input) {\n      flex: 1;\n      min-width: 150px;\n    }\n    \n    .add-btn {\n      background-color: #4CAF50;\n      color: white;\n      border: none;\n      padding: 8px 16px;\n      border-radius: 4px;\n      cursor: pointer;\n      font-size: 14px;\n      transition: background-color 0.3s;\n    }\n    \n    .add-btn:hover {\n      background-color: #45a049;\n    }\n    \n    table {\n      border-collapse: collapse;\n      width: 100%;\n      margin-bottom: 1em;\n    }\n    \n    th, td {\n      border: 1px solid #ddd;\n      padding: 8px;\n      text-align: left;\n    }\n    \n    th {\n      background-color: #f2f2f2;\n    }\n    \n    .label {\n      font-weight: bold;\n      color: #555;\n      white-space: nowrap;\n    }\n    \n    @media (max-width: 768px) {\n      .quick-add-form {\n        flex-direction: column;\n        align-items: stretch;\n      }\n      \n      .quick-add-form input,\n      .quick-add-form select {\n        width: 100%;\n        box-sizing: border-box;\n      }\n    }\n  </style>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
