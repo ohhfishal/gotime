@@ -11,9 +11,9 @@ type FileHandler struct {
 }
 
 type Summary struct {
-	Schedule []ScheduleEntry
-	// TODO: Include cagtegory map
-	Total time.Duration
+	Schedule   []ScheduleEntry
+	Categories map[string]time.Duration
+	Total      time.Duration
 }
 
 type ScheduleEntry struct {
@@ -31,6 +31,7 @@ func NewFileHandler(filename string) (*FileHandler, error) {
 
 func Summarize(entries []Entry) Summary {
 	var summary Summary
+	summary.Categories = map[string]time.Duration{}
 	if len(entries) == 0 {
 		return summary
 	}
@@ -45,12 +46,14 @@ func Summarize(entries []Entry) Summary {
 			Entry:    entry,
 			Duration: entries[i+1].Time.Sub(entry.Time),
 		}
-		// TODO: Implement here instead
-		// if _, ok := args.CategoryBreakdown[entry.Category]; ok {
-		// 	args.CategoryBreakdown[entry.Category] += tuple.Duration
-		// } else {
-		// 	args.CategoryBreakdown[entry.Category] = tuple.Duration
-		// }
+
+		category := entry.Entry.Category
+		if _, ok := summary.Categories[category]; ok {
+			summary.Categories[category] += entry.Duration
+		} else {
+			summary.Categories[category] = entry.Duration
+		}
+
 		summary.Schedule = append(summary.Schedule, entry)
 		summary.Total += entry.Duration
 	}

@@ -1,6 +1,7 @@
 package serve
 
 import (
+  "slices"
   "strings"
   "time"
 	"github.com/ohhfishal/gotime/entry"
@@ -123,6 +124,19 @@ templ QuickAddForm() {
   </form>
 }
 
+// TODO: Have this use the correct formatting from the CLI args
+func formatDuration(duration time.Duration) string {
+  return strings.TrimSuffix(duration.Round(time.Minute).String(), `0s`)
+}
+
+func sortedKeys(mapping map[string]time.Duration) []string {
+  keys := []string{}
+  for key, _ := range mapping {
+    keys = append(keys, key)
+  }
+  slices.Sort(keys)
+  return keys
+}
 
 templ Details(summary entry.Summary) {
   <h2>Schedule</h2>
@@ -138,10 +152,11 @@ templ Details(summary entry.Summary) {
     <tbody>
     for _, summaryRow := range summary.Schedule {
       // TODO: Improve formatting (tailwind css?)
+      // TODO: Make the rows editable?
       <tr>
         <td>{ summaryRow.Entry.Category }</td>
         <td>{ summaryRow.Entry.Time.Format(`15:04`) }</td>
-        <td>{ strings.TrimSuffix(summaryRow.Duration.Round(time.Minute).String(), `0s`) }</td>
+        <td>{ formatDuration(summaryRow.Duration) }</td>
         <td>{ summaryRow.Entry.Note }</td>
       </tr>
     }
@@ -157,21 +172,19 @@ templ Details(summary entry.Summary) {
       </tr>
     </thead>
     <tbody>
-      @SummaryRow()
+    for _, category := range sortedKeys(summary.Categories) {
+      <tr>
+        <td>{ category }</td>
+        <td>{ formatDuration(summary.Categories[category]) }</td>
+      </tr>
+    }
+      <tr>
+        <td>Total</td>
+        <td>{ formatDuration(summary.Total) }</td>
+      </tr>
     </tbody>
   </table>
 }
-
-
-
-// TODO: Add the metadata here
-templ SummaryRow() {
-  <tr>
-    <td>Example Cateogry</td>
-    <td>Length</td>
-  </tr>
-}
-
 
 templ Style() {
   <style>
