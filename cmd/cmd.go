@@ -16,7 +16,6 @@ type Config struct {
 
 type RootCmd struct {
 	Report  ReportCmd `cmd:"" help:"Print summary report"`
-	Tui     TuiCmd    `cmd:"" help:"Run gotime as a TUI."`
 	Serve   ServeCmd  `cmd:"" help:"Run gotime as a HTTP server via localhost."`
 	Log     LogCmd    `default:"withargs" cmd:"" help:"Log using a custom category and note."`
 	LogFile string    `default:"~/.config/gotime.csv" help:"Path to log file." env:"GOTIME_LOG"`

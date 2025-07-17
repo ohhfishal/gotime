@@ -4,6 +4,14 @@
 
 ## [Upcoming] - 2025-XX-XX
 
+## [v0.9.0] - 2025-07-17
+### **Breaking** ⚠️
+- Remove `tui` in favor of `serve`
+
+### Added
+- `serve` core functionality
+
+
 ## [v0.8.0] - 2025-06-26
 ### Added
 - `tui` option `debug`

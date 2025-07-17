@@ -1,0 +1,301 @@
+package serve
+
+import (
+  "slices"
+  "strings"
+  "time"
+	"github.com/ohhfishal/gotime/entry"
+)
+
+// TODO: Transfer away from a cdn and deliver ourself
+templ Include() {
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js" integrity="sha384-Akqfrbj/HpNVo8k11SXBb6TlBWmXXlYQrCSqEWmyKJe+hDm3Z/B2WVG4smwBkRVm" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+}
+
+templ Loader() {
+  <div class="loader"></div>
+}
+
+templ MainPage(summary entry.Summary) {
+  <!DOCTYPE html>
+  <html>
+  <head>
+  <title>Daily Report</title>
+  @Include()
+  @QuickAddScript()
+  @Style()
+  </head>
+  <body>
+
+    <!-- TODO: Have this select the date to view? -->
+    <h1>{ time.Now().Format(time.DateOnly) }</h1>
+
+    <!-- TODO: Implement this with HTMX to refresh next div-->
+    <div class="quick-add-bar">
+      @QuickAddForm()
+    </div>
+
+    <div hx-get="/api/v1/entry" hx-trigger="every 1m,entry:created from:document">
+      @Details(summary)
+    </div>
+
+  </body>
+  </html>
+}
+
+templ QuickAddScript() {
+  <script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('entryForm', () => {
+        return {
+          request: {
+            category:	"",
+            date: "{{ time.Now().Format(time.DateOnly) }}",
+            time:	"{{ time.Now().Format(`15:04`) }}",
+            note:	"",
+          },
+          submit() {
+            // TODO: Validate and trigger an htmx submit
+          },
+          async post() {
+            // TODO: Handle errors and validation
+            const response = await fetch("/api/v1/entry", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                category:	this.request.category,
+                time:	this.request.date + " " + this.request.time + ":00",
+                note:	this.request.note,
+              }),
+            }).catch(error => {
+              console.error('Error posting entry:', error);
+              throw error;
+            });
+            
+            // TODO: Resolve bad case
+            if (response.ok) {
+              document.dispatchEvent(new CustomEvent('entry:created'));
+              
+              this.request = {
+                category: "",
+                date: "{{ time.Now().Format(time.DateOnly) }}",
+                time: "{{ time.Now().Format(`15:04`) }}",
+                note: "",
+              };
+            }
+          },
+        }
+      });
+    });
+  </script>
+}
+
+templ QuickAddForm() {
+  <form class="quick-add-form" 
+        x-on:submit.prevent="post"
+        x-data="entryForm">
+        
+    <span class="label">Add Entry:</span>
+    
+    <input type="text" 
+          x-model="request.category"
+          class="category-input"
+          placeholder="Category (e.g., work, out...)"
+          required>
+
+    <input type="date" 
+      x-model="request.date"
+      readonly
+      title="Changing date is currently not supported."
+      required>
+    
+    <input type="time" 
+      x-model="request.time"
+      required>
+    
+    <input type="text" 
+          x-model="request.note"
+          placeholder="Add a note... (Optional)">
+    
+    <button type="submit" class="add-btn">Add Entry</button>
+  </form>
+}
+
+// TODO: Have this use the correct formatting from the CLI args
+func formatDuration(duration time.Duration) string {
+  return strings.TrimSuffix(duration.Round(time.Minute).String(), `0s`)
+}
+
+func sortedKeys(mapping map[string]time.Duration) []string {
+  keys := []string{}
+  for key, _ := range mapping {
+    keys = append(keys, key)
+  }
+  slices.Sort(keys)
+  return keys
+}
+
+templ Details(summary entry.Summary) {
+  <h2>Schedule</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:25%">Category</th>
+        <th style="width:10%">Start</th>
+        <th style="width:10%">Length</th>
+        <th>Note</th>
+      </tr>
+    </thead>
+    <tbody>
+    for _, summaryRow := range summary.Schedule {
+      // TODO: Improve formatting (tailwind css?)
+      // TODO: Make the rows editable?
+      <tr>
+        <td>{ summaryRow.Entry.Category }</td>
+        <td>{ summaryRow.Entry.Time.Format(`15:04`) }</td>
+        <td>{ formatDuration(summaryRow.Duration) }</td>
+        <td>{ summaryRow.Entry.Note }</td>
+      </tr>
+    }
+    </tbody>
+  </table>
+
+  <h2>Summary</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:50%">Category</th>
+        <th>Length</th>
+      </tr>
+    </thead>
+    <tbody>
+    for _, category := range sortedKeys(summary.Categories) {
+      <tr>
+        <td>{ category }</td>
+        <td>{ formatDuration(summary.Categories[category]) }</td>
+      </tr>
+    }
+      <tr>
+        <td>Total</td>
+        <td>{ formatDuration(summary.Total) }</td>
+      </tr>
+    </tbody>
+  </table>
+}
+
+templ Style() {
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* HTML: <div class="loader"></div> */
+    .loader {
+      width: fit-content;
+      font-weight: bold;
+      font-family: monospace;
+      font-size: 30px;
+      clip-path: inset(0 3ch 0 0);
+      animation: l4 1s steps(4) infinite;
+    }
+    .loader:before {
+      content:"Loading..."
+    }
+    @keyframes l4 {to{clip-path: inset(0 -1ch 0 0)}}
+      
+    .quick-add-bar {
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px solid #e9ecef;
+    }
+    
+    .quick-add-form {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .quick-add-form input, .quick-add-form select {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .quick-add-form input[type="text"].category-input {
+      min-width: 200px;
+    }
+    
+    .quick-add-form input[type="time"] {
+      width: 120px;
+    }
+    
+    .category-input {
+      min-width: 200px;
+    }
+    
+    .quick-add-form input[type="text"]:not(.category-input) {
+      flex: 1;
+      min-width: 150px;
+    }
+    
+    .add-btn {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+    
+    .add-btn:hover {
+      background-color: #45a049;
+    }
+    
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-bottom: 1em;
+    }
+    
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f2f2f2;
+    }
+    
+    .label {
+      font-weight: bold;
+      color: #555;
+      white-space: nowrap;
+    }
+    
+    @media (max-width: 768px) {
+      .quick-add-form {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .quick-add-form input,
+      .quick-add-form select {
+        width: 100%;
+        box-sizing: border-box;
+      }
+    }
+  </style>
+}

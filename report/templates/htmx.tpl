@@ -120,7 +120,7 @@
 
   <h1>{{ .StartTime | date }}</h1>
 
-  <!-- TODO: Implement this with HTMX
+  <!-- TODO: Implement this with HTMX -->
   <div class="quick-add-bar">
     <form class="quick-add-form" action="/add-entry" method="POST">
       <span class="label">Add Entry:</span>
@@ -146,7 +146,6 @@
       <button type="submit" class="add-btn">Add Entry</button>
     </form>
   </div>
-  -->
 
   {{ if .Schedule | not }}
     <p>No work logged today</p>
