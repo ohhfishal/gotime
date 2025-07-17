@@ -2,22 +2,17 @@ package serve
 
 import (
 	"context"
-	_ "embed"
 	"encoding/json"
 	"html/template"
 	"log/slog"
 	"net/http"
 	"time"
 
-	"github.com/flowchartsman/swaggerui"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/ohhfishal/gotime/assets"
 	"github.com/ohhfishal/gotime/entry"
 )
-
-//go:embed openapi.yaml
-var spec []byte
 
 type EntryHandler interface {
 	CreateEntry(entry.Entry) error
@@ -40,12 +35,6 @@ func Serve(ctx context.Context, logger *slog.Logger, handler EntryHandler, port 
 	r.Use(loggingMiddleware(logger))
 	r.Use(middleware.Recoverer)
 
-	r.Get("/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/x-yaml")
-		w.Write(spec)
-	})
-
-	r.Mount("/openapi", http.StripPrefix("/openapi", swaggerui.Handler(spec)))
 	r.Mount("/assets", http.StripPrefix("/assets", http.FileServer(http.FS(assets.Assets))))
 
 	r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
